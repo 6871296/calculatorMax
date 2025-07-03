@@ -9,20 +9,6 @@ except (Exception, KeyboardInterrupt) as e:
     runable=False
 #运行这段程序需要使用外部库easygui，通过上述代码安装后可以使用
 
-#变量名、函数名等解释
-#runable:外部库是否自动安装成功或已安装（本程序依赖easygui外部库）
-#subprocess:可以在Python中运行终端程序，用来自动安装easygui
-#sys:在本程序中用于获取Python版本，用于打开正确的pip安装依赖包
-#easygui:Python中较为有名的图形界面模块
-#random:Python内置随机模块
-#math:Python内置数学模块
-#useinfo:展示软件说明书的函数
-#history:存储历史记录的字典变量，格式为{"算式":"结果"}
-#f:错误描述或计算结果
-#ev:算式
-#err:是否发生错误
-#c:easygui中的选项
-
 #20250703 第二版
 #1.添加异常处理，捕捉更多错误，并将软件说明书中执行过程中“*”中的“一定”改为“较强”
 #2.在说明书中加入Python的比较运算符、逻辑运算符，比较大小更方便
