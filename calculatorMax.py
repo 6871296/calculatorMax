@@ -9,11 +9,6 @@ except (Exception, KeyboardInterrupt) as e:
     runable=False
 #运行这段程序需要使用外部库easygui，通过上述代码安装后可以使用
 
-#20250703 第二版
-#1.添加异常处理，捕捉更多错误，并将软件说明书中执行过程中“*”中的“一定”改为“较强”
-#2.在说明书中加入Python的比较运算符、逻辑运算符，比较大小更方便
-#3.修改说明书备注，使用提示更清晰
-
 if runable:
     print('正在导入模块……')
     import easygui
@@ -26,10 +21,9 @@ if runable:
 一、执行过程：
 1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照下面的流程操作：
 (1)打开终端/命令提示符
-(2)输入指令：pip
-(3)如果返回了“xxsh: command not found: pip”（“xx”可以是任何内容），输入“pip3”，如果返回了“xxsh: command not found: pip3”，你的电脑可能没有正确安装Python。
-(4)如果在第2、3步时输入“pip”的返回内容不是“xxsh: command not found: pip”，输入“pip uninstall easygui”，否则输入“pip3 uninstall easygui”。
-这样，外部库就被成功删除了。 
+(2)输入指令：'''+sys.executable+'''-m pip install easygui
+这样，外部库就被成功删除了。
+如果执行失败，请检查你的电脑有没有正确安装Python。如果一切正常，请运行安装到的Python文件夹（IDLE的位置）运行“Update Shell Profile.command”。
 2.程序会询问“请输入算式”，输入后会给你结果。
 *尽管这个程序拥有较强的异常捕捉能力，但也请勿恶意制造异常。
 3.软件会把历史记录保存起来，得到结果后可选择“历史记录”查看。
