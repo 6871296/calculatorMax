@@ -6,7 +6,7 @@
 
     (1)打开终端/命令提示符
 
-    (2)输入指令：`pip install easygui`
+    (2)输入指令：`pip uninstall easygui`
 
     这样，外部库就被成功删除了。
 

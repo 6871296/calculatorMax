@@ -21,7 +21,7 @@ if runable:
 一、执行过程：
 1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照下面的流程操作：
 (1)打开终端/命令提示符
-(2)输入指令：'''+sys.executable+'''-m pip install easygui
+(2)输入指令：'''+sys.executable+'''-m pip uninstall easygui
 这样，外部库就被成功删除了。
 如果执行失败，请检查你的电脑有没有正确安装Python。如果一切正常，请运行安装到的Python文件夹（IDLE的位置）运行“Update Shell Profile.command”。
 2.程序会询问“请输入算式”，输入后会给你结果。
