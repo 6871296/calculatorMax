@@ -16,14 +16,10 @@ if runable:
     from math import *  
     print('正在初始化……')
     def useinfo():
-        easygui.msgbox(title='科学计算器',msg='''软件说明书
+        easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
 
 一、执行过程：
-1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照下面的流程操作：
-(1)打开终端/命令提示符
-(2)输入指令：'''+sys.executable+'''-m pip uninstall easygui
-这样，外部库就被成功删除了。
-如果执行失败，请检查你的电脑有没有正确安装Python。如果一切正常，请运行安装到的Python文件夹（IDLE的位置）运行“Update Shell Profile.command”。
+1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照“外部库卸载说明”中的步骤操作。
 2.程序会询问“请输入算式”，输入后会给你结果。
 *尽管这个程序拥有较强的异常捕捉能力，但也请勿恶意制造异常。
 3.软件会把历史记录保存起来，得到结果后可选择“历史记录”查看。
@@ -134,7 +130,8 @@ uniform(a, b): 生成a~b范围内的随机浮点数
 7)整数溢出（math.isinf()）：计算结果太大（即使Python可以计算古戈尔级的数）
 8)非算式或其它异常：输入如1=0这样的算式或输入不完整/不正确的Python代码造成
 但难免有无法捕捉的错误，请勿恶意造成其它错误。
-4.如发生未能捕捉的异常，请重新运行此程序。''')
+4.如发生未能捕捉的异常，请重新运行此程序。
+5.禁止执行不安全的Python代码，后果自负。''')
     def s_tri(bot, high)->float:
         return bot*high/2
     def s_rect(bot, high):
@@ -148,12 +145,13 @@ uniform(a, b): 生成a~b范围内的随机浮点数
         return sqrt(pow(a,2)+pow(b,2))
     def s_circle(r):
         return 3.14159265358979323846264338327950288419716939987510*r*r
+    m=0
     useinfo()
     history={}
     while True:
         f='未知错误'
         try:
-            ev=easygui.enterbox(msg='请输入算式',title='科学计算器')
+            ev=easygui.enterbox(msg='请输入算式',title='calculatorMax')
             f=str(eval(ev))
             err=False
         except OverflowError:
@@ -183,16 +181,40 @@ uniform(a, b): 生成a~b范围内的随机浮点数
             except:
                 f='可能不是数学算式'
         history[ev]=f
-        c=easygui.choicebox(title='科学计算器-结果',msg=ev+'='+f, choices=['继续','历史记录','使用说明','退出'])
+        choices=['继续','历史记录','使用说明','退出']
+        if not err:
+            choices.append('记忆')
+        c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f, choices=)
         if c=='继续':
             continue
         elif c=='退出':
-            if easygui.ynbox(title='科学计算器',msg='确定退出？'):
+            if easygui.ynbox(title='calculatorMax',msg='确定退出？'):
                 break
         elif c=='使用说明':
             useinfo()
+        elif c=='记忆':
+            m=f
         elif c=='历史记录':
             hr_str=''
             for i in history:
                 hr_str+=i+'='+history[i]+'\n'
-            easygui.msgbox(title='科学计算器-历史记录',msg=hr_str)
+            c=easygui.choicebox(title='历史记录-calculatorMax',msg=hr_str,choices=['继续','存储'])
+            if c=='存储':
+                try:
+                    f=open(easygui.enterbox(title='claculatorMax',msg='请输入存储路径，请确保该文件不存在或为空'),'w')
+                    f.write(hr_str)
+                    f.close()
+                    easygui.msgbox(title='calculatorMax',msg='存储完成！')
+                except:
+                    f.close()
+                    easygui.msgbox(title='calculatorMax',msg='存储失败！')
+sys.exit()
+
+
+
+
+
+
+
+
+
