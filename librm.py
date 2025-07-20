@@ -1,12 +1,17 @@
 #用于自动删除easygui等在程序中调用过的库。请在相同版本的Python中运行！
 import subprocess,sys
 max=3 #最多尝试几次，可自由调整
-for i in range(1,max)
-  subprocess.run([sys.execytable,"-m","pip","uninstall","easygui"])
-  try:
-    import easygui
-  except ImportError:
-    print("Sucsessfully removed 1 library. main.py'll automatically install them when you use it.")
-    sys.exit()
-  print("Removation failed when trying "+i+'/'+max+" times.")
+libs={"easygui":False,"simpleeval":False} #所有库是否已卸载成功
+for i in range(1,max):
+    for l in libs:
+        if libs[l]:
+            subprocess.run(sys.executable,"-m","pip","uninstall",l]
+            try:
+                eval("import "+l)
+            except importError:
+                print("Sucsessfully uninstalled "+l")
+                libs[i]=True
+    if False not in libs.values():
+        print("Sucsessfully uninstalled "+len(libs)+" libraries")
+        sys.exit()
 print("Removation failed!")
