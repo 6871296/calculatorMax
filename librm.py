@@ -1,7 +1,7 @@
 #用于自动删除easygui等在程序中调用过的库。请在相同版本的Python中运行！
 import subprocess,sys
 max=3 #最多尝试几次，可自由调整
-libs={"easygui":False,"simpleeval":False} #所有库是否已卸载成功
+libs={"easygui":False} #所有库是否已卸载成功
 for i in range(1,max):
     for l in libs:
         if libs[l]:
