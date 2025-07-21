@@ -21,7 +21,7 @@ if runable:
         easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
 
 一、执行过程：
-1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照“外部库卸载说明”中的步骤操作。
+1.这个程序会先给你的Python安装两个外部库，如果想要删除，请按照“外部库卸载说明”中的步骤操作。
 2.程序会询问“请输入算式”，输入后会给你结果。
 *尽管这个程序拥有较强的异常捕捉能力，但也请勿恶意制造异常。
 3.软件会把历史记录保存起来，得到结果后可选择“历史记录”查看。
@@ -208,7 +208,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
         choices=['继续','历史记录','使用说明','退出']
         if not err:
             choices.append('记忆')
-        c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f)
+        c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f,choices=choices)
         if c=='继续':
             continue
         elif c=='退出':
