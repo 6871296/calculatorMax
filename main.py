@@ -5,7 +5,7 @@ try:
     subprocess.run([sys.executable,"-m","pip", "install", "--upgrade", "pip"])
     subprocess.run([sys.executable,"-m","pip", "install", "easygui"])
 except (Exception, KeyboardInterrupt) as e:
-    print("外部库安装失败，请使用pip手动安装\n"+e[1]+': '+e[2])
+    print("外部库安装失败，请按照说明书手动安装\n"+e[1]+': '+e[2])
     runable=False
 #运行这段程序需要使用外部库easygui，通过上述代码安装后可以使用
 
@@ -20,10 +20,11 @@ if runable:
 
 一、执行过程：
 1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照“外部库卸载说明”中的步骤操作。
-2.程序会询问“请输入算式”，输入后会给你结果。
+2.开始是进入的是首页。想要计算，请点击“开始计算”进入计算页。
+3.程序会询问“请输入算式”，输入后会给你结果。
 *尽管这个程序拥有较强的异常捕捉能力，但也请勿恶意制造异常。
-3.软件会把历史记录保存起来，得到结果后可选择“历史记录”查看。
-4.想要退出，请在结果显示页选择“退出”，再点击“Yes”。
+4.软件会把历史记录保存起来，得到结果后可在首页选择“历史记录”查看。
+4.想要退出，请在首页选择“退出”，再点击“Yes”。
 
 
 二、主要功能:
@@ -38,7 +39,7 @@ if runable:
 整除: //
 幂:**
 
-比较大小:（以下内容结果均为布尔值，无法用于计算）
+比较大小:（以下内容结果均为布尔值（真或假），无法用于计算）
 等于:==
 大于:>
 小于:<
@@ -143,57 +144,61 @@ uniform(a, b): 生成a~b范围内的随机浮点数
         return sqrt(s*(s-a)*(s-b)*(s-c))
     def pt(a,b)->float:
         return sqrt(pow(a,2)+pow(b,2))
-    def s_circle(r):
-        return 3.14159265358979323846264338327950288419716939987510*r*r
+    def s_circle(r)->float:
+        return 3.141592653589793238462643383279502884197169399875105923074944*r*r
     m=0
-    useinfo()
     history={}
     while True:
-        f='未知错误'
-        try:
-            ev=easygui.enterbox(msg='请输入算式',title='calculatorMax')
-            f=str(eval(ev))
-            err=False
-        except OverflowError:
-            f='浮点数溢出'
-            err=True
-        except ZeroDivisionError:
-            f='除零'
-            err=True
-        except FloatingPointError:
-            f='浮点数异常'
-            err=True
-        except ValueError:
-            f='值错误'
-            err=True
-        except TypeError:
-            f='类型错误'
-            err=True
-        except:
-            err=True
-            try:
-                if isnan(f):
-                    f='不是数字'
-                elif isinf(f):
-                    f='溢出'
-                else:
-                    f='未知错误'
-            except:
-                f='可能不是数学算式'
-        history[ev]=f
-        choices=['继续','历史记录','使用说明','退出']
-        if not err:
-            choices.append('记忆')
-        c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f, choices=choices)
-        if c=='继续':
-            continue
-        elif c=='退出':
-            if easygui.ynbox(title='calculatorMax',msg='确定退出？'):
-                break
+        c=easygui.choicebox(title="calculatorMax",msg="calculatorMax，计算一切结果",choices=['开始计算','使用说明','历史记录','设置','退出'])
+        if c=='开始计算':
+            while True:
+                f='未知错误'
+                try:
+                    ev=easygui.enterbox(msg='请输入算式',title='calculatorMax')
+                    f=str(eval(ev))
+                    err=False
+                except OverflowError:
+                    f='浮点数溢出'
+                    err=True
+                except ZeroDivisionError:
+                    f='除零'
+                    err=True
+                except FloatingPointError:
+                    f='浮点数异常'
+                    err=True
+                except ValueError:
+                    f='值错误'
+                    err=True
+                except TypeError:
+                    f='类型错误'
+                    err=True
+                except:
+                    err=True
+                    try:
+                        if isnan(f):
+                            f='不是数字'
+                        elif isinf(f):
+                            f='溢出'
+                        else:
+                            f='未知错误'
+                    except:
+                        f='可能不是数学算式'
+                history[ev]=f
+                choices=['继续','返回首页','退出']
+                if not err:
+                    choices.append('记忆')
+                c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f, choices=choices)
+                if c=='继续':
+                    continue
+                elif c=='返回首页':
+                    break
+                elif c=='退出':
+                    if easygui.ynbox(title='calculatorMax',msg='确定退出？'):
+                        sys.exit()
+                elif c=='记忆':
+                    m=f
         elif c=='使用说明':
             useinfo()
-        elif c=='记忆':
-            m=f
         elif c=='历史记录':
             hr_str=''
             for i in history:
@@ -208,13 +213,11 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                 except:
                     f.close()
                     easygui.msgbox(title='calculatorMax',msg='存储失败！')
+        elif c=='设置':
+            while True:
+                c=easygui.choicebox(title='设置-calculatorMax',msg='设置',choices=['返回','清空历史记录'])
+                if c=='清空历史记录' and easygui.ynbox('确定清空历史记录吗？'choices=("[<F1>]确定","[<F2>]取消")):
+                    history={}
+                elif c=='返回':
+                    break
 sys.exit()
-
-
-
-
-
-
-
-
-
