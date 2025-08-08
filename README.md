@@ -1,3 +1,4 @@
+# 此版本已停止维护，请[使用更新的版本](https://github.com/6871296/calculatorMax/tree/dev)
 # CalculatorMax 软件说明书
 
 ## 一、执行过程
