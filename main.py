@@ -4,16 +4,18 @@ runable=True
 try:
     subprocess.run([sys.executable,"-m","pip", "install", "--upgrade", "pip"])
     subprocess.run([sys.executable,"-m","pip", "install", "easygui"])
+    subprocess.run([sys.executable,'-m','pip','install','simpleeval'])
 except (Exception, KeyboardInterrupt) as e:
     print("外部库安装失败，请按照说明书手动安装\n"+e[1]+': '+e[2])
     runable=False
 #运行这段程序需要使用外部库easygui，通过上述代码安装后可以使用
-
+use_simple_eval=False
 if runable:
     print('正在导入模块……')
     import easygui
     from random import *
     from math import *  
+    from simpleeval import simple_eval
     print('正在初始化……')
     def useinfo():
         easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
@@ -39,7 +41,7 @@ if runable:
 整除: //
 幂:**
 
-比较大小:（以下内容结果均为布尔值（真或假），无法用于计算）
+比较大小:（以下内容结果均为布尔值（真或假），无法用于计算，当前版本在simpleeval模式下无法使用）
 等于:==
 大于:>
 小于:<
@@ -155,7 +157,31 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                 f='未知错误'
                 try:
                     ev=easygui.enterbox(msg='请输入算式',title='calculatorMax')
-                    f=str(eval(ev))
+                    if use_simple_eval:
+                        ev.replace("m","m()")
+                        ev.replace("pi","pi()")
+                        ev.replace("e","e()")
+                        f=str(simple_eval(ev,
+                        functions={"m":lambda: m,"pi":lambda: pi,"e":lambda: e,"pow":lambda a,b: pow(a,b),
+                                "sqrt":lambda a: sqrt(a),"sin":lambda a: sin(a),"cos":lambda a: cos(a),
+                                "tan":lambda a: tan(a),"asin":lambda a: asin(a),"acos":lambda a: acos(a),
+                                "atan":lambda a: atan(a),"log":lambda a: log(a),"log10":lambda a: log10(a),
+                                "log2":lambda a: log2(a),"exp":lambda a: exp(a),"sinh":lambda a: sinh(a),
+                                "cosh":lambda a: cosh(a),"tanh":lambda a: tanh(a),"gamma":lambda a: gamma(a),
+                                "erf":lambda a: erf(a),"erfc":lambda a: erfc(a),"ceil":lambda a: ceil(a),
+                                "floor":lambda a: floor(a),"trunc":lambda a: trunc(a),"modf":lambda a: modf(a),
+                                "fabs":lambda a: fabs(a),"factorial":lambda a: factorial(a),
+                                "isinf":lambda a: isinf(a),"isnan":lambda a: isnan(a),
+                                "isclose":lambda a, b: isclose(a,b),"gcd":lambda a, b: gcd(a,b),
+                                "lcm":lambda a, b: lcm(a,b),"s_tri":lambda a, b: s_tri(a,b),
+                                "s_rect":lambda a, b: s_rect(a,b),"s_circle":lambda a: s_circle(a),
+                                "s_tra":lambda a, b, c: s_tra(a,b,c),"hsf_s_tri":lambda a, b, c: hsf_s_tri(a,b,c),
+                                "pt":lambda a, b: pt(a,b),"randint":lambda a, b: randint(a,b),
+                                "random":lambda: random(),"randrange":lambda a, b: randrange(a,b),
+                                "uniform":lambda a, b: uniform(a,b)
+                        }))
+                    else:
+                        f=str(eval(ev))
                     err=False
                 except OverflowError:
                     f='浮点数溢出'
@@ -206,7 +232,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
             c=easygui.choicebox(title='历史记录-calculatorMax',msg=hr_str,choices=['继续','存储'])
             if c=='存储':
                 try:
-                    f=open(easygui.enterbox(title='claculatorMax',msg='请输入存储路径，请确保该文件不存在或为空'),'w')
+                    f=open(easygui.enterbox(title='claculatorMax',msg='请输入存储路径，请确保该文件存在且不为空'),'w')
                     f.write(hr_str)
                     f.close()
                     easygui.msgbox(title='calculatorMax',msg='存储完成！')
@@ -216,8 +242,22 @@ uniform(a, b): 生成a~b范围内的随机浮点数
         elif c=='设置':
             while True:
                 c=easygui.choicebox(title='设置-calculatorMax',msg='设置',choices=['返回','清空历史记录'])
-                if c=='清空历史记录' and easygui.ynbox('确定清空历史记录吗？'choices=("[<F1>]确定","[<F2>]取消")):
+                if c=='清空历史记录' and easygui.ynbox('确定清空历史记录吗？','calculatorMax'):
                     history={}
                 elif c=='返回':
                     break
+                elif c=='simpleeval设置':
+                    while True:
+                        if use_simple_eval:
+                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能，但是比较大小和逻辑运算在该模式下不可用。',choices=['返回','simpleeval模式：开'])
+                            if c=='返回':
+                                break
+                            elif c=='simpleeval模式：开':
+                                use_simple_eval=False
+                        else:
+                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能，但是比较大小和逻辑运算在该模式下不可用。',choices=['返回','simpleeval模式：关'])
+                            if c=='返回':
+                                break
+                            elif c=='simpleeval模式：关':
+                                use_simple_eval=True
 sys.exit()
