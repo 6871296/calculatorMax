@@ -184,7 +184,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
         choices=['继续','历史记录','使用说明','退出']
         if not err:
             choices.append('记忆')
-        c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f, choices=)
+        c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f, choices=choices)
         if c=='继续':
             continue
         elif c=='退出':
