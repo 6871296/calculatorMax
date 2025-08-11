@@ -8,25 +8,29 @@ try:
 except (Exception, KeyboardInterrupt) as e:
     print("外部库安装失败，请按照说明书手动安装\n"+e[1]+': '+e[2])
     runable=False
-#运行这段程序需要使用外部库easygui，通过上述代码安装后可以使用
+#运行这段程序需要使用外部库easygui和simpleeval，通过上述代码安装后可以使用
 use_simple_eval=False
 if runable:
     print('正在导入模块……')
-    import easygui
-    from random import *
-    from math import *  
-    from simpleeval import simple_eval
+    try:
+        import easygui
+        from random import *
+        from math import *  
+        from simpleeval import simple_eval
+    except:
+        print('导入失败！')
+        sys.exit()
     print('正在初始化……')
     def useinfo():
         easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
 
 一、执行过程：
-1.这个程序会先给你的Python安装一个外部库，如果想要删除，请按照“外部库卸载说明”中的步骤操作。
+1.这个程序会先给你的Python安装一些外部库，如果想要删除，请按照“外部库卸载说明.md”中的步骤操作。
 2.开始是进入的是首页。想要计算，请点击“开始计算”进入计算页。
 3.程序会询问“请输入算式”，输入后会给你结果。
 *尽管这个程序拥有较强的异常捕捉能力，但也请勿恶意制造异常。
 4.软件会把历史记录保存起来，得到结果后可在首页选择“历史记录”查看。
-4.想要退出，请在首页选择“退出”，再点击“Yes”。
+5.想要退出，请在首页选择“退出”，再点击“Yes”。
 
 
 二、主要功能:
@@ -41,13 +45,14 @@ if runable:
 整除: //
 幂:**
 
-比较大小:（以下内容结果均为布尔值（真或假），无法用于计算，当前版本在simpleeval模式下无法使用）
+比较大小:（以下内容结果均为布尔值（真或假），只能用于逻辑运算）
 等于:==
 大于:>
 小于:<
 大于或等于:>=
 小于或等于:<=
-（以下内容前后都要加空格）
+                       
+逻辑运算:（以下内容结果均为布尔值（真或假），只能用于逻辑运算，前后都要加空格）
 或者: or 
 并且: and 
 ...不成立: not 
@@ -249,15 +254,16 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                 elif c=='simpleeval设置':
                     while True:
                         if use_simple_eval:
-                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能，但是比较大小和逻辑运算在该模式下不可用。',choices=['返回','simpleeval模式：开'])
+                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：开'])
                             if c=='返回':
                                 break
                             elif c=='simpleeval模式：开':
                                 use_simple_eval=False
                         else:
-                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能，但是比较大小和逻辑运算在该模式下不可用。',choices=['返回','simpleeval模式：关'])
+                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：关'])
                             if c=='返回':
                                 break
                             elif c=='simpleeval模式：关':
                                 use_simple_eval=True
-sys.exit()
+if easygui.ynbox(title='calculatorMax',msg='确定退出？'):
+    sys.exit()
