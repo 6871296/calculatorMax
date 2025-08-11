@@ -241,7 +241,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                     easygui.msgbox(title='calculatorMax',msg='存储失败！')
         elif c=='设置':
             while True:
-                c=easygui.choicebox(title='设置-calculatorMax',msg='设置',choices=['返回','清空历史记录'])
+                c=easygui.choicebox(title='设置-calculatorMax',msg='设置',choices=['返回','清空历史记录','simpleeval设置'])
                 if c=='清空历史记录' and easygui.ynbox('确定清空历史记录吗？','calculatorMax'):
                     history={}
                 elif c=='返回':
@@ -260,4 +260,6 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                                 break
                             elif c=='simpleeval模式：关':
                                 use_simple_eval=True
+        elif c=='退出':
+            break
 sys.exit()
