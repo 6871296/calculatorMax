@@ -267,6 +267,5 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                                 use_simple_eval=True
         elif c=='退出':
             break
-
 if easygui.ynbox(title='calculatorMax',msg='确定退出？'):
     sys.exit()
