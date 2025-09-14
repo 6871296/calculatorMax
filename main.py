@@ -288,18 +288,11 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                     break
                 elif c=='simpleeval设置':
                     while True:
-                        if use_simple_eval:
-                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：开'])
-                            if c=='返回':
-                                break
-                            elif c=='simpleeval模式：开':
-                                use_simple_eval=False
-                        else:
-                            c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：关'])
-                            if c=='返回':
-                                break
-                            elif c=='simpleeval模式：关':
-                                use_simple_eval=True
+                        c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：'+{'True':'开','False':'关'}[str(use_simple_eval)]])
+                        if c=='返回':
+                            break
+                        elif c=='simpleeval模式：'+{'True':'开','False':'关'}[str(use_simple_eval)]:
+                            use_simple_eval=not use_simple_eval
         elif c=='退出':
             break
 if easygui.ynbox(title='calculatorMax',msg='确定退出？'):
