@@ -1,31 +1,29 @@
 print("正在安装外部库……")
 import subprocess,sys
-runable=True
 try:
     subprocess.run([sys.executable,"-m","pip", "install", "--upgrade", "pip"])
     subprocess.run([sys.executable,"-m","pip", "install", "easygui"])
     subprocess.run([sys.executable,'-m','pip','install','simpleeval'])
 except Exception as e:
     print("外部库安装失败，请按照说明书手动安装\n"+e[0])
-    runable=False
+    sys.exit()
 #运行这段程序需要使用外部库easygui和simpleeval，通过上述代码安装后可以使用
 use_simple_eval=False
-if runable:
-    print('正在导入模块……')
-    try:
-        import easygui
-        from random import *
-        from math import *  
-        from simpleeval import simple_eval
-    except ImportError:
-        print('导入失败！')
-        sys.exit()
-    except:
-        print('导入时发生未知错误！')
-        sys.exit()
-    print('正在初始化……')
-    def useinfo():
-        easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
+print('正在导入模块……')
+try:
+    import easygui
+    from random import *
+    from math import *  
+    from simpleeval import simple_eval
+except ImportError:
+    print('导入失败！')
+    sys.exit()
+except:
+    print('导入时发生未知错误！')
+    sys.exit()
+print('正在初始化……')
+def useinfo():
+    easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
 
 一、执行过程：
 1.这个程序会先给你的Python安装一些外部库，如果想要删除，请按照“外部库卸载说明.md”中的步骤操作。
@@ -54,7 +52,7 @@ if runable:
 小于:<
 大于或等于:>=
 小于或等于:<=
-                       
+                   
 逻辑运算:（以下内容结果均为布尔值（真或假），只能用于逻辑运算，前后都要加空格）
 或者: or 
 并且: and 
