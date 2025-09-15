@@ -33,6 +33,11 @@ def useinfo():
 4.软件会把历史记录保存起来，得到结果后可在首页选择“历史记录”查看。
 5.想要退出，请在首页选择“退出”，再点击“Yes”。
 
+关于设置
+
+设置目前包含“清空历史记录”和“simpleeval”设置。
+simpleeval设置可以设置是否打开simpleeval模式，详见程序内。
+点击清空历史记录后，经过确认，程序会删除全部历史记录。打开历史记录页后显示内容为空。
 
 二、主要功能:
 
@@ -136,7 +141,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
 4)值错误（ValueError）：调用函数时未输入正确范围内的数据
 5)类型错误（TypeError）：调用函数时输入的不是数字/浮点数
 6)结果不是数字（math.isnan()）：错误调用未在本说明书中出示的Python函数（输出结果正常且不是数字时不会引发报错）
-7)整数溢出（math.isinf()）：计算结果太大（即使Python可以计算古戈尔级的数）
+7)整数溢出（math.isinf()）：计算结果太大（即使Python可以计算古戈尔级以上的数）
 8)非算式或其它异常：输入如1=0这样的算式或输入不完整/不正确的Python代码造成
 但难免有无法捕捉的错误，请勿恶意造成其它错误。
 4.如发生未能捕捉的异常，请重新运行此程序。
@@ -157,7 +162,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
     m=0
     history={}
     while True:
-        c=easygui.choicebox(title="calculatorMax",msg="calculatorMax，计算一切结果",choices=['开始计算','使用说明','历史记录','设置','退出'])
+        c=easygui.buttonbox(title="calculatorMax",msg="calculatorMax，计算一切结果",choices=['开始计算','使用说明','历史记录','设置','退出'])
         if c=='开始计算':
             while True:
                 f='未知错误'
@@ -244,7 +249,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                 choices=['继续','返回首页','退出']
                 if not err:
                     choices.append('记忆')
-                c=easygui.choicebox(title='结果-calculatorMax',msg=ev+'='+f, choices=choices)
+                c=easygui.buttonbox(title='结果-calculatorMax',msg=ev+'='+f, choices=choices)
                 if c=='继续':
                     continue
                 elif c=='返回首页':
@@ -260,7 +265,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
             hr_str=''
             for i in history:
                 hr_str+=i+'='+history[i]+'\n'
-            c=easygui.choicebox(title='历史记录-calculatorMax',msg=hr_str,choices=['继续','存储'])
+            c=easygui.buttonbox(title='历史记录-calculatorMax',msg=hr_str,choices=['返回','存储'])
             if c=='存储':
                 try:
                     f=open(easygui.enterbox(title='claculatorMax',msg='请输入存储文件路径，请确保该文件存在且不为空'),'w')
@@ -279,14 +284,14 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                     pass
         elif c=='设置':
             while True:
-                c=easygui.choicebox(title='设置-calculatorMax',msg='设置',choices=['返回','清空历史记录','simpleeval设置'])
+                c=easygui.buttonbox(title='设置-calculatorMax',msg='设置',choices=['返回','清空历史记录','simpleeval设置'])
                 if c=='清空历史记录' and easygui.ynbox('确定清空历史记录吗？','calculatorMax'):
                     history={}
                 elif c=='返回':
                     break
                 elif c=='simpleeval设置':
                     while True:
-                        c=easygui.choicebox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：'+{'True':'开','False':'关'}[str(use_simple_eval)]])
+                        c=easygui.buttonbox(title='simpleeval设置-calculatorMax',msg='simpleeval外部库有类似eval的功能，可以“给字符串去掉引号”。但是它比普通eval()函数更加安全，只能执行指定的功能。',choices=['返回','simpleeval模式：'+{'True':'开','False':'关'}[str(use_simple_eval)]])
                         if c=='返回':
                             break
                         elif c=='simpleeval模式：'+{'True':'开','False':'关'}[str(use_simple_eval)]:
