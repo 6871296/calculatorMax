@@ -1,5 +1,7 @@
 # CalculatorMax 软件说明书
 
+最近新发布了[C++版](https://github.dev/6871296/calculatorMax_cpp)，之后会搞成二进制位运算计算器
+
 ## 一、执行过程
 
 1. 这个程序会先给你的Python安装一些外部库，如果想要删除，请按“外部库卸载说明.md”中的步骤操作。
