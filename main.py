@@ -166,6 +166,7 @@ uniform(a, b): 生成a~b范围内的随机浮点数
         if c=='开始计算':
             while True:
                 f='未知错误'
+                choices=[]
                 try:
                     ev=easygui.enterbox(msg='请输入算式',title='calculatorMax')
                     if use_simple_eval:
@@ -218,24 +219,17 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                         }))
                     else:
                         f=str(eval(ev))
-                    err=False
                 except OverflowError:
                     f='浮点数溢出'
-                    err=True
                 except ZeroDivisionError:
                     f='除零'
-                    err=True
                 except FloatingPointError:
                     f='浮点数异常'
-                    err=True
                 except ValueError:
                     f='值错误'
-                    err=True
                 except TypeError:
                     f='类型错误'
-                    err=True
                 except:
-                    err=True
                     try:
                         if isnan(f):
                             f='不是数字'
@@ -245,10 +239,10 @@ uniform(a, b): 生成a~b范围内的随机浮点数
                             f='未知错误'
                     except:
                         f='可能不是数学算式'
-                history[ev]=f
-                choices=['继续','返回首页','退出']
-                if not err:
+                else:
                     choices.append('记忆')
+                history[ev]=f
+                choices+=['继续','返回首页','退出']
                 c=easygui.buttonbox(title='结果-calculatorMax',msg=ev+'='+f, choices=choices)
                 if c=='继续':
                     continue
