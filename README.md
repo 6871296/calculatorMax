@@ -12,9 +12,10 @@ simpleeval模式是另一种计算算式的方法。它基于`simpleeval`库中�
 
 calculatorMax的记忆功能与普通计算器不同，它可以同时记忆多个值，而不是只能记忆一个。
 
-## 二、计算功能
+## 计算功能
 
-在simpleeval模式下，目前仅已知以下功能和Python关键字可用。
+在simpleeval模式下，目前仅已知以下功能和Python关键字可用。（高级、执行类除外）
+
 非simpleeval模式可以执行任何Python代码。
 
 ### 一般功能
