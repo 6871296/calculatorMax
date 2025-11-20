@@ -1,6 +1,6 @@
 # CalculatorMax 软件说明书
 
-最近新发布了[C++版](https://github.dev/6871296/calculatorMax_cpp)，之后会搞成二进制位运算计算器
+由于发现Python同样支持位运算，[C++版](https://github.dev/6871296/calculatorMax_cpp)已Archive。请使用最新的bitCalculator功能。
 
 ## 一、执行过程
 
