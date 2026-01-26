@@ -1,8 +1,8 @@
 # CalculatorMax 软件说明书
 
-## 讲解
+由于发现Python同样支持位运算，[C++版](https://github.dev/6871296/calculatorMax_cpp)已Archive。请使用最新的bitCalculator功能。
 
-页面操作什么的大家都懂，这里只讲解一些专有名词。
+## 专有名词讲解
 
 ### simpleeval模式
 
