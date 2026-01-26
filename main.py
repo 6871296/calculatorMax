@@ -25,10 +25,10 @@ print('正在初始化……')
 def useinfo():
     easygui.msgbox(title='说明书-CalculatorMax',msg='''CalculatorMax 软件说明书
 
-一、执行过程：
+一、重要提醒：
 1.这个程序会先给你的Python安装一些外部库，如果想要删除，请按照“外部库卸载说明.md”中的步骤操作。
 2.开始是进入的是首页。想要计算，请点击“开始计算”进入计算页。
-3.程序会询问“请输入算式”，输入后会给你结果。
+3.在计算页，程序会询问“请输入算式”，输入后会给你结果。
 *尽管这个程序拥有较强的异常捕捉能力，但也请勿恶意制造异常。
 4.软件会把历史记录保存起来，得到结果后可在首页选择“历史记录”查看。
 5.想要退出，请在首页选择“退出”，再点击“Yes”。
@@ -44,30 +44,30 @@ simpleeval设置可以设置是否打开simpleeval模式，详见程序内。
 非simpleeval模式可以执行任何Python代码。
 
 计算:
-加法: +
-减法: -
-乘法: *
-除法: /
-取余: %
-记忆: m
-整除: //
-幂:**
+a+b: 加法
+a-b: 减法
+a*b: 乘法
+a/b: 除法
+a%%b: 取余
+m: 记忆值
+a//b: 整除（四舍五入）
+a**b: 幂
 
 比较大小:（以下内容结果均为布尔值（真或假），只能用于逻辑运算）
-等于:==
-大于:>
-小于:<
-大于或等于:>=
-小于或等于:<=
+a==b: 等于
+a>b: 大于
+a<b: 小于
+a>=b: 大于等于
+a<=b: 小于等于
                    
 逻辑运算:（以下内容结果均为布尔值（真或假），只能用于逻辑运算，前后都要加空格）
-或者: or 
-并且: and 
-...不成立: not 
+a or b: 或运算
+a and b: 与运算
+not a: 非运算
 
 数学常数:
-pi: 圆周率π（3.14159...）
-e: 自然对数的底数e（2.71828...）
+pi: 圆周率π
+e: 自然对数的底数e
 
 幂函数和开方:
 pow(x, y): x的y次幂
@@ -76,7 +76,7 @@ sqrt(x): x的平方根
 对数函数:
 log(x): x的自然对数
 log10(x): x的底数为10的对数
-log2(x): x的底数为2的对数（Python 3.3及以上版本）
+log2(x): x的底数为2的对数（Python 3.3及以上版本可用）
 
 三角函数:
 sin(x): 正弦函数
@@ -112,7 +112,7 @@ factorial(x): 阶乘
 浮点数信息:
 isinf(x): 如果x是无穷大，则返回True
 isnan(x): 如果x不是数字（NaN），则返回True
-isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0): 测试两个浮点数是否在给定容忍范围内相等
+isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0): 测试两个小数是否在给定容忍范围内相等
 
 GCD和LCM:
 gcd(x, y): 计算x和y的最大公约数
@@ -130,8 +130,14 @@ pt(a,b):使用勾股定理计算直角三角形斜边长度
 
 随机数:
 randint(a, b): 生成a~b范围内的随机整数
-random(): 生成0~1范围内的随机浮点数
-uniform(a, b): 生成a~b范围内的随机浮点数
+random(): 生成0~1范围内的随机小数
+uniform(a, b): 生成a~b范围内的随机小数
+
+位运算:
+bitand(a,b)或a&b: 按位与运算
+bitor(a,b)或a|b: 按位或运算
+bitnot(a)或~a: 按位取反运算
+bitxor(a,b)或a^b: 按位异或运算 
 
 其它:
 m: 记忆值，可以在计算结束后把值赋给记忆值。
@@ -166,7 +172,7 @@ sys.exit(): 强制退出
 8)非算式或其它异常：输入如1=0这样的算式或输入不完整/不正确的Python代码造成
 但难免有无法捕捉的错误，请勿恶意造成其它错误。
 4.如发生未能捕捉的异常，请重新运行此程序。
-5.禁止执行不安全的Python代码，后果自负。''')
+5.禁止执行不安全的Python代码，后果自负。''')#a%%b那里差点被坑
     def s_tri(bot, high)->float:
         return bot*high/2
     def s_rect(bot, high):
@@ -194,49 +200,53 @@ sys.exit(): 强制退出
                         ev.replace("m","m()")
                         ev.replace("pi","pi()")
                         ev.replace("e","e()")
-                        f=str(simple_eval(ev,
-                        functions={"m":lambda: m,
-                                   "pi":lambda: pi,
-                                   "e":lambda: e,
-                                   "pow":lambda a,b: pow(a,b),
-                                "sqrt":lambda a: sqrt(a),
-                                "sin":lambda a: sin(a),
-                                "cos":lambda a: cos(a),
-                                "tan":lambda a: tan(a),
-                                "asin":lambda a: asin(a),
-                                "acos":lambda a: acos(a),
-                                "atan":lambda a: atan(a),
-                                "log":lambda a: log(a),
-                                "log10":lambda a: log10(a),
-                                "log2":lambda a: log2(a),
-                                "exp":lambda a: exp(a),
-                                "sinh":lambda a: sinh(a),
-                                "cosh":lambda a: cosh(a),
-                                "tanh":lambda a: tanh(a),
-                                "gamma":lambda a: gamma(a),
-                                "erf":lambda a: erf(a),
-                                "erfc":lambda a: erfc(a),
-                                "ceil":lambda a: ceil(a),
-                                "floor":lambda a: floor(a),
-                                "trunc":lambda a: trunc(a),
-                                "modf":lambda a: modf(a),
-                                "fabs":lambda a: fabs(a),
-                                "factorial":lambda a: factorial(a),
-                                "isinf":lambda a: isinf(a),
-                                "isnan":lambda a: isnan(a),
-                                "isclose":lambda a, b: isclose(a,b),
-                                "gcd":lambda a, b: gcd(a,b),
-                                "lcm":lambda a, b: lcm(a,b),
-                                "s_tri":lambda a, b: s_tri(a,b),
-                                "s_rect":lambda a, b: s_rect(a,b),
-                                "s_circle":lambda a: s_circle(a),
-                                "s_tra":lambda a, b, c: s_tra(a,b,c),
-                                "hsf_s_tri":lambda a, b, c: hsf_s_tri(a,b,c),
-                                "pt":lambda a, b: pt(a,b),
-                                "randint":lambda a, b: randint(a,b),
-                                "random":lambda: random(),
-                                "randrange":lambda a, b: randrange(a,b),
-                                "uniform":lambda a, b: uniform(a,b)
+                        f=str(simple_eval(ev,functions={
+                            "m":lambda: m,
+                            "pi":lambda: pi,
+                            "e":lambda: e,
+                            "pow":lambda a,b: pow(a,b),
+                            "sqrt":lambda a: sqrt(a),
+                            "sin":lambda a: sin(a),
+                            "cos":lambda a: cos(a),
+                            "tan":lambda a: tan(a),
+                            "asin":lambda a: asin(a),
+                            "acos":lambda a: acos(a),
+                            "atan":lambda a: atan(a),
+                            "log":lambda a: log(a),
+                            "log10":lambda a: log10(a),
+                            "log2":lambda a: log2(a),
+                            "exp":lambda a: exp(a),
+                            "sinh":lambda a: sinh(a),
+                            "cosh":lambda a: cosh(a),
+                            "tanh":lambda a: tanh(a),
+                            "gamma":lambda a: gamma(a),
+                            "erf":lambda a: erf(a),
+                            "erfc":lambda a: erfc(a),
+                            "ceil":lambda a: ceil(a),
+                            "floor":lambda a: floor(a),
+                            "trunc":lambda a: trunc(a),
+                            "modf":lambda a: modf(a),
+                            "fabs":lambda a: fabs(a),
+                            "factorial":lambda a: factorial(a),
+                            "isinf":lambda a: isinf(a),
+                            "isnan":lambda a: isnan(a),
+                            "isclose":lambda a, b: isclose(a,b),
+                            "gcd":lambda a, b: gcd(a,b),
+                            "lcm":lambda a, b: lcm(a,b),
+                            "s_tri":lambda a, b: s_tri(a,b),
+                            "s_rect":lambda a, b: s_rect(a,b),
+                            "s_circle":lambda a: s_circle(a),
+                            "s_tra":lambda a, b, c: s_tra(a,b,c),
+                            "hsf_s_tri":lambda a, b, c: hsf_s_tri(a,b,c),
+                            "pt":lambda a, b: pt(a,b),
+                            "randint":lambda a, b: randint(a,b),
+                            "random":lambda: random(),
+                            "randrange":lambda a, b: randrange(a,b),
+                            "uniform":lambda a, b: uniform(a,b),
+                            "bitand":lambda a,b:a&b,
+                            "bitor":lambda a,b:a|b,
+                            "bitnot":lambda a:~a,
+                            "bitxor":lambda a,b:a^b
                         }))
                     else:
                         f=str(eval(ev))
