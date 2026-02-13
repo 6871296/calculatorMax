@@ -3,14 +3,18 @@ from math import *
 from random import *
 from simpleeval import simple_eval
 from threading import Thread
+import sys
 app = flask.Flask(__name__)
 
+@app.route('/')
+def main():
+    return flask.render_template('index.html')
 @app.route('/<site>')
 def page(site):
-    return flask.render_template(f'./web/{site}/index.html')
+    return flask.render_template(f'{site}/index.html')
 @app.route('/assets/<file>')
 def asset(file):
-    return flask.send_from_directory('./cdn'+ file)
+    return flask.send_from_directory('cdn/'+ file)
 
 
 def s_tri(bot, high)->float:
@@ -31,7 +35,7 @@ class Api:
     def __init__(self):
         self.m=0
         self.use_simple_eval=False
-    def change_settings(self,use_simple_eval=self.use_simple_eval): # type: ignore
+    def change_settings(self,use_simple_eval):
         self.use_simple_eval=use_simple_eval
     def calc(self,ev):
         try:
@@ -113,8 +117,9 @@ class Api:
 
 if __name__ == '__main__':
     api = Api()
-    webview.create_window('CalculatorMax',app,js_api=api)
-    flask_thread = Thread(target=app.run)
+    window=webview.create_window('CalculatorMax',app,js_api=api)
+    flask_thread = Thread(target=app.run,args=['port=8080'])
     flask_thread.start()
     webview.start()
-    flask_thread.join()
+    flask_thread.join(timeout=5)
+    sys.exit()
