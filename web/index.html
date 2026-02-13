@@ -16,7 +16,134 @@
                 </ul>
             </p>
         </noscript>
+        <script>
+            let resExists=false;
+            function status(b){
+                if(b){
+                    document.querySelector("h1").style.color="green";
+                    setTimeout(function(){document.querySelector("h1").style.color="black";},100);
+                }
+                else{
+
+                    document.querySelector("h1").style.color="red";
+                    setTimeout(function(){document.querySelector("h1").style.color="black";},100);
+                }
+            }
+            function onload(){
+                document.getElementById("ev-input").onkeydown=function(e){if(e.key=="Enter")calc();}
+                document.getElementById("ev-input").onfocus=function(){
+                    document.getElementById("ev-input").select()
+                    if(resExists)document.getElementById("ev-input").value=document.getElementById("ev-result").innerText
+                };
+                document.getElementById("ev-input").focus();
+            }
+            function ac(){
+                resExists=false;
+                document.getElementById("ev-input").value="";
+                document.getElementById("res").style.display="none";
+                document.getElementById("res-btns").style.display="none";
+                document.getElementById("equal-sign").style.color="black";
+                document.getElementById("equal-sign").innerText="=";
+            }
+            function calc(){
+                err,res=window.pywebview.api.calc(document.getElementById("ev-input").value)
+                ac();
+                if(err){
+                    document.getElementById("res").style.display="inline";
+                    document.getElementById("equal-sign").style.color="red";
+                    document.getElementById("equal-sign").innerText="错误：";
+                    document.getElementById("res-btns").style.display="none";
+                    status(false);
+                }else{
+                    resExists=true;
+                    document.getElementById("res-btns").style.display="block";
+                    document.getElementById("res").style.display="inline";
+                    status(true);
+                }
+                document.getElementById("ev-result").innerText=res;
+            }
+            function copy_res(){
+                if(!resExists || !navigator.clipboard){
+                    document.getElementById("res-copy").innerText="复制失败！";
+                    document.getElementById("res-copy").style.color="red";
+                    status(false);
+                }else{
+                    navigator.clipboard.writeText(document.getElementById("ev-result").innerText);
+                    document.getElementById("res-copy").innerText="已复制";
+                    document.getElementById("res-copy").style.color="green";
+                    status(true);
+                }
+                setTimeout(function(){
+                    document.getElementById("res-copy").innerText="复制";
+                    document.getElementById("res-copy").style.color="black";
+                },1000);
+            }
+            function copy_full(){
+                if(!resExists || !navigator.clipboard){
+                    document.getElementById("res-copy").innerText="复制失败！";
+                    document.getElementById("res-copy").style.color="red";
+                    status(false);
+                }else{
+                    navigator.clipboard.writeText(document.getElementById("ev-input").value + " = " + document.getElementById("ev-result").innerText);
+                    document.getElementById("res-copy").innerText="已复制完整算式";
+                    document.getElementById("res-copy").style.color="green";
+                    status(true);
+                }
+                setTimeout(function(){
+                    document.getElementById("res-copy").innerText="复制";
+                    document.getElementById("res-copy").style.color="black";
+                },1000);
+            }
+            function mem_res(){
+                if(!resExists || !window.pywebview.api.mem){
+                    document.getElementById("res-copy").innerText="记忆失败！";
+                    document.getElementById("res-copy").style.color="red";
+                    status(false);
+                }else{
+                    window.pywebview.api.mem(document.getElementById("ev-result").innerText);
+                    document.getElementById("res-copy").innerText="已记忆";
+                    document.getElementById("res-copy").style.color="green";
+                    status(true);
+                }
+                setTimeout(function(){
+                    document.getElementById("res-copy").innerText="记忆";
+                    document.getElementById("res-copy").style.color="black";
+                },1000);
+            }
+        </script>
+        <style>
+
+        </style>
+        <nav>
+            <div class="navdiv-l">
+                <a href="/" class="navbox">
+                    <strong class="navitem">CalculatorMax</strong>
+                </a>
+                <a href="/about" class="navbox">
+                    <span class="navitem">关于</span>
+                </a>
+                <a href="/settings" class="navbox">
+                    <span class="navitem">设置</span>
+                </a>
+            </div>
+            <div class="navdiv-r">
+                <a href="https://github.com/6871296/calculatorMax" class="navbox">
+                    <span class="navitem"><img src="https://github.githubassets.com/favicons/favicon.svg" class="github-icon"></span>
+                </a>
+            </div>
+        </nav>
         <h1>calculatorMax</h1>
-        
+        <p class="mid">计算一切结果</p>
+        <div class="mid white round margined">
+            <input type="text" id="ev-input" placeholder="请输入算式">
+            <button id="ev-calc">计算</button><br>
+            <span id="res" style="display:none;">
+                <span id="equal-sign">=</span> <span id="ev-result"></span>
+            </span>
+            <div id="res-btns" style="display:none;">
+                <button id="res-copy" class="res-btn" onclick="copy_res()" ondblclick="copy_full()">复制</button>
+                <button id="res-mem" class="res-btn" onclick="mem_res()">记忆</button>
+            </div>
+        </div>
     </body>
 </html>

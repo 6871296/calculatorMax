@@ -1,0 +1,37 @@
+body{
+    background-color:#00ffff44;
+}
+nav{
+    background-color:deepskyblue;
+    border-radius: 0 0 1cm 1cm;
+    height:1.2cm
+}
+.navdiv-l{
+    align-self: flex-start;
+}
+.navdiv-r{
+    align-self: flex-end;
+}
+.navbox{
+    border-radius: 3px;
+    background-color:#0000;
+    padding:2px;
+}
+.navbox:hover{
+    background-color:#0003;
+}
+.navitem{
+    color:white;
+    text-decoration: none;
+}
+.github-icon{
+    border-radius:50%;
+    background-color:white;
+}
+.mid{
+    margin:0 auto;
+    align-self: center;
+}
+.white{background-color:white;}
+.round{border-radius: 1cm;}
+.margined{margin:3cm;}
