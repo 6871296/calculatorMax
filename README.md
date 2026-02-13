@@ -1,6 +1,6 @@
 # CalculatorMax 软件说明书
 
-由于发现Python同样支持位运算，[C++版](https://github.dev/6871296/calculatorMax_cpp)已Archive。请使用最新的bitCalculator功能。
+新的GUI正在制作中！
 
 ## 专有名词讲解
 
