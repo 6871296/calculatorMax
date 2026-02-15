@@ -3,8 +3,10 @@
     <head>
         <meta charset="UTF-8">
         <title>首页 - calculatorMax</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="/assets/reload-paint.js"></script>
     </head>
-    <body>
+    <body class="app-container">
         <noscript>
             <h1>啊哦 :(</h1>
             <p>
@@ -46,7 +48,8 @@
                 document.getElementById("equal-sign").innerText="=";
             }
             function calc(){
-                err,res=window.pywebview.api.calc(document.getElementById("ev-input").value)
+                let calc_res=window.pywebview.api.calc(document.getElementById("ev-input").value).result
+                let res=calc_res[0];let err=calc_res[1];
                 ac();
                 if(err){
                     document.getElementById("res").style.display="inline";
@@ -136,7 +139,7 @@
         <p class="mid">计算一切结果</p>
         <div class="mid white round margined">
             <input type="text" id="ev-input" placeholder="请输入算式">
-            <button id="ev-calc">计算</button><br>
+            <button id="ev-calc" onclick="calc()">计算</button><br>
             <span id="res" style="display:none;">
                 <span id="equal-sign">=</span> <span id="ev-result"></span>
             </span>

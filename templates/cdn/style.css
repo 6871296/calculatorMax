@@ -1,5 +1,23 @@
+html{
+    font-family: sans-serif,system-ui;
+}
 body{
     background-color:#00ffff44;
+
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    
+    /* 确保背景重绘 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}/* 稳定的全屏布局方案 */
+body, .app-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* 允许内部滚动 */
 }
 nav{
     background-color:deepskyblue;
@@ -35,3 +53,29 @@ nav{
 .white{background-color:white;}
 .round{border-radius: 1cm;}
 .margined{margin:3cm;}
+html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 禁止body滚动，防止跳动 */
+            background-color: #fff; /* 防止透明背景导致的渲染问题 */
+        }
+
+        /* 2. 主容器 */
+        .main-container {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; /* 在这里滚动 */
+            overflow-x: hidden;
+            
+            /* 3. 修复 macOS 调整大小时的渲染消失问题 */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+        }
+
+        /* 4. 防止输入框聚焦导致页面跳动 */
+        input, textarea {
+            scroll-margin: 0;
+        }
