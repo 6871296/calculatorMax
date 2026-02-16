@@ -25,16 +25,17 @@
             function status(b){
                 if(b){
                     document.querySelector("h1").style.color="green";
-                    setTimeout(function(){document.querySelector("h1").style.color="black";},100);
+                    setTimeout(function(){document.querySelector("h1").style.color="black";},1000);
                 }
                 else{
                     document.querySelector("h1").style.color="red";
-                    setTimeout(function(){document.querySelector("h1").style.color="black";},100);
+                    setTimeout(function(){document.querySelector("h1").style.color="black";},1000);
                 }
             }
             
             async function calc(){
                 let expression = document.getElementById("ev-input").value;
+                if(expression==='')return;
                 let calc_res;
                 
                 try {
@@ -59,9 +60,11 @@
                         let data = await response.json();
                         calc_res = [data.result, data.error];
                     }
+                    status(true)
                 } catch (e) {
                     console.error(e);
                     calc_res = ['计算错误: ' + e.message, true];
+                    status(false)
                 }
                 
                 let res = calc_res[0];
@@ -83,15 +86,28 @@
                 document.getElementById("ev-result").innerText=res;
             }
             
-            function onload(){
-                document.getElementById("ev-input").onkeydown=function(e){if(e.key=="Enter")calc();}
-                document.getElementById("ev-input").onfocus=function(){
-                    document.getElementById("ev-input").select()
-                    if(resExists)document.getElementById("ev-input").value=document.getElementById("ev-result").innerText
-                };
-                document.getElementById("ev-input").focus();
+            function updateInputBg(){
+                var input = document.getElementById("ev-input");
+                if(input.value === ""){
+                    input.style.backgroundColor = "#00ffff44";
+                }else{
+                    input.style.backgroundColor = "#00ffff88";
+                }
             }
-            
+            function onload(){
+                var input = document.getElementById("ev-input");
+                input.onkeydown=function(e){if(e.key=="Enter")calc();}
+                input.oninput=updateInputBg;
+                input.onfocus=function(){
+                    input.select()
+                    if(resExists)input.value=document.getElementById("ev-result").innerText
+                    updateInputBg();
+                };
+                input.onblur=function(){
+                    input.style.backgroundColor = "";
+                };
+                input.focus();
+            }
             function ac(){
                 resExists=false;
                 document.getElementById("ev-input").value="";
@@ -100,7 +116,6 @@
                 document.getElementById("equal-sign").style.color="black";
                 document.getElementById("equal-sign").innerText="=";
             }
-            
             function copy_res(){
                 if(!resExists || !navigator.clipboard){
                     document.getElementById("res-copy").innerText="复制失败！";
@@ -164,9 +179,8 @@
                     document.getElementById("res-copy").style.color="black";
                 },1000);
             }
-            
             // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', onload);
+            document.addEventListener('DOMContentLoaded', onload);
         </script>
         <style>
         </style>
@@ -183,23 +197,27 @@ document.addEventListener('DOMContentLoaded', onload);
                 </a>
             </div>
             <div class="navdiv-r">
-                <a href="https://github.com/6871296/calculatorMax" class="navbox">
+                <a href="https://github.com/6871296/calculatorMax">
                     <span class="navitem"><img src="https://github.githubassets.com/favicons/favicon.svg" class="github-icon"></span>
                 </a>
             </div>
         </nav>
-        <h1>calculatorMax</h1>
-        <p class="mid">计算一切结果</p>
-        <div class="mid white round margined">
-            <input type="text" id="ev-input" placeholder="请输入算式">
-            <button id="ev-calc" onclick="calc()">计算</button><br>
-            <span id="res" style="display:none;">
-                <span id="equal-sign">=</span> <span id="ev-result"></span>
-            </span>
-            <div id="res-btns" style="display:none;">
-                <button id="res-copy" class="res-btn" onclick="copy_res()" ondblclick="copy_full()">复制</button>
-                <button id="res-mem" class="res-btn" onclick="mem_res()">记忆</button>
+        <main class="mid">
+            <h1>calculatorMax</h1>
+            <p class="mid">计算一切结果</p>
+            <div class="mid white round margined">
+                <div style="align-self:center;align-items:flex-start;">
+                    <input type="text" id="ev-input" placeholder="请输入算式">
+                    <button id="ev-calc" onclick="calc()">计算</button><br>
+                    <span id="res" style="display:none;">
+                        <span id="equal-sign">=</span> <span id="ev-result"></span>
+                    </span>
+                </div>
+                <div id="res-btns" style="display:none;">
+                    <button id="res-copy" class="res-btn" onclick="copy_res()" ondblclick="copy_full()">复制</button>
+                    <button id="res-mem" class="res-btn" onclick="mem_res()">记忆</button>
+                </div>
             </div>
-        </div>
+        </main>
     </body>
 </html>
