@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh">
     <head>
+        <script src="/assets/api_waiter.js"></script>
         <meta charset="UTF-8">
         <title>首页 - calculatorMax</title>
         <link rel="stylesheet" href="/assets/style.css">
@@ -19,36 +20,53 @@
         </noscript>
         <script>
             let resExists=false;
+            let memoryValue = 0;
+            
             function status(b){
                 if(b){
                     document.querySelector("h1").style.color="green";
                     setTimeout(function(){document.querySelector("h1").style.color="black";},100);
                 }
                 else{
-
                     document.querySelector("h1").style.color="red";
                     setTimeout(function(){document.querySelector("h1").style.color="black";},100);
                 }
             }
-            function onload(){
-                document.getElementById("ev-input").onkeydown=function(e){if(e.key=="Enter")calc();}
-                document.getElementById("ev-input").onfocus=function(){
-                    document.getElementById("ev-input").select()
-                    if(resExists)document.getElementById("ev-input").value=document.getElementById("ev-result").innerText
-                };
-                document.getElementById("ev-input").focus();
-            }
-            function ac(){
-                resExists=false;
-                document.getElementById("ev-input").value="";
-                document.getElementById("res").style.display="none";
-                document.getElementById("res-btns").style.display="none";
-                document.getElementById("equal-sign").style.color="black";
-                document.getElementById("equal-sign").innerText="=";
-            }
-            function calc(){
-                let calc_res=window.pywebview.api.calc(document.getElementById("ev-input").value).result
-                let res=calc_res[0];let err=calc_res[1];
+            
+            async function calc(){
+                let expression = document.getElementById("ev-input").value;
+                let calc_res;
+                
+                try {
+                    // 支持两种模式：pywebview 直接调用 和 HTTP API
+                    if (window.pywebview && window.pywebview.api && window.pywebview.api.calc) {
+                        let result = window.pywebview.api.calc(expression);
+                        // 处理 Promise 或直接返回值
+                        if (result && typeof result.then === 'function') {
+                            calc_res = await result;
+                        } else if (result && result.result !== undefined) {
+                            calc_res = [result.result, result.error];
+                        } else {
+                            calc_res = result;
+                        }
+                    } else {
+                        // HTTP 模式
+                        let response = await fetch('/api/calc', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({expression: expression})
+                        });
+                        let data = await response.json();
+                        calc_res = [data.result, data.error];
+                    }
+                } catch (e) {
+                    console.error(e);
+                    calc_res = ['计算错误: ' + e.message, true];
+                }
+                
+                let res = calc_res[0];
+                let err = calc_res[1];
+                
                 ac();
                 if(err){
                     document.getElementById("res").style.display="inline";
@@ -64,6 +82,25 @@
                 }
                 document.getElementById("ev-result").innerText=res;
             }
+            
+            function onload(){
+                document.getElementById("ev-input").onkeydown=function(e){if(e.key=="Enter")calc();}
+                document.getElementById("ev-input").onfocus=function(){
+                    document.getElementById("ev-input").select()
+                    if(resExists)document.getElementById("ev-input").value=document.getElementById("ev-result").innerText
+                };
+                document.getElementById("ev-input").focus();
+            }
+            
+            function ac(){
+                resExists=false;
+                document.getElementById("ev-input").value="";
+                document.getElementById("res").style.display="none";
+                document.getElementById("res-btns").style.display="none";
+                document.getElementById("equal-sign").style.color="black";
+                document.getElementById("equal-sign").innerText="=";
+            }
+            
             function copy_res(){
                 if(!resExists || !navigator.clipboard){
                     document.getElementById("res-copy").innerText="复制失败！";
@@ -80,6 +117,7 @@
                     document.getElementById("res-copy").style.color="black";
                 },1000);
             }
+            
             function copy_full(){
                 if(!resExists || !navigator.clipboard){
                     document.getElementById("res-copy").innerText="复制失败！";
@@ -96,13 +134,27 @@
                     document.getElementById("res-copy").style.color="black";
                 },1000);
             }
-            function mem_res(){
-                if(!resExists || !window.pywebview.api.mem){
+            
+            async function mem_res(){
+                if(!resExists){
                     document.getElementById("res-copy").innerText="记忆失败！";
                     document.getElementById("res-copy").style.color="red";
                     status(false);
                 }else{
-                    window.pywebview.api.mem(document.getElementById("ev-result").innerText);
+                    let val = document.getElementById("ev-result").innerText;
+                    memoryValue = parseFloat(val) || 0;
+                    
+                    // 同步到服务器（HTTP 模式）
+                    try {
+                        await fetch('/api/mem', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({value: memoryValue})
+                        });
+                    } catch(e) {
+                        console.error('Failed to sync memory:', e);
+                    }
+                    
                     document.getElementById("res-copy").innerText="已记忆";
                     document.getElementById("res-copy").style.color="green";
                     status(true);
@@ -112,9 +164,11 @@
                     document.getElementById("res-copy").style.color="black";
                 },1000);
             }
+            
+            // 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', onload);
         </script>
         <style>
-
         </style>
         <nav>
             <div class="navdiv-l">
