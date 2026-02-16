@@ -21,7 +21,7 @@ body, .app-container {
 }
 nav{
     background-color:deepskyblue;
-    border-radius: 0 0 1cm 1cm;
+    border-radius: 0 0 0.5cm 0.5cm;
     height:1.2cm
 }
 .navdiv-l{
@@ -54,28 +54,9 @@ nav{
 .round{border-radius: 1cm;}
 .margined{margin:3cm;}
 html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* 禁止body滚动，防止跳动 */
-            background-color: #fff; /* 防止透明背景导致的渲染问题 */
-        }
-
-        /* 2. 主容器 */
-        .main-container {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto; /* 在这里滚动 */
-            overflow-x: hidden;
-            
-            /* 3. 修复 macOS 调整大小时的渲染消失问题 */
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            -webkit-backface-visibility: hidden;
-        }
-
-        /* 4. 防止输入框聚焦导致页面跳动 */
-        input, textarea {
-            scroll-margin: 0;
-        }
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
