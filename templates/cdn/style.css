@@ -22,7 +22,7 @@ body, .app-container {
 nav{
     background-color:deepskyblue;
     border-radius: 0 0 0.5cm 0.5cm;
-    height:1.2cm;
+    height:1.3cm;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -43,6 +43,7 @@ nav{
     background-color:#0000;
     padding:2px;
     margin:0 3px;
+    text-decoration: none;
 }
 .navbox:hover{
     background-color:#0003;
@@ -86,4 +87,9 @@ html, body {
 }
 #ev-input:hover{
     background-color:#00ffff44;
+}
+#last-ev{
+    display: none;
+    color:gainsboro;
+    font-size:small;
 }
