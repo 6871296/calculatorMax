@@ -157,14 +157,15 @@
                     status(false);
                 }else{
                     let val = document.getElementById("ev-result").innerText;
-                    memoryValue = parseFloat(val) || 0;
+                    // 直接存储字符串，不转换为 float（避免精度丢失）
+                    memoryValue = val;
                     
                     // 同步到服务器（HTTP 模式）
                     try {
                         await fetch('/api/mem', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({value: memoryValue})
+                            body: JSON.stringify({value: val})  // 发送字符串
                         });
                     } catch(e) {
                         console.error('Failed to sync memory:', e);
