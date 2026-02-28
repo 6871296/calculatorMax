@@ -41,8 +41,7 @@ nav{
 .navbox{
     border-radius: 3px;
     background-color:#0000;
-    padding:2px;
-    margin:0 3px;
+    padding:5px;
     text-decoration: none;
 }
 .navbox:hover{
@@ -82,6 +81,7 @@ html, body {
     border-radius:5px;
     padding:5px;
     height:0.5cm;
+    width: max-content;
     font-size:0.4cm;
     caret-color: deepskyblue;
 }
@@ -92,4 +92,23 @@ html, body {
     display: none;
     color:gainsboro;
     font-size:small;
+}
+#ev-result-container {
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: top;
+}
+#ev-result {
+    display: block;
+    word-break: break-all;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    max-height: 7.5em; /* 5 lines * 1.5em line-height */
+    overflow: hidden;
+    position: relative;
+}
+#ev-result.truncated {
+    -webkit-mask-image: linear-gradient(to bottom, black 4em, transparent 7.5em);
+    mask-image: linear-gradient(to bottom, black 4em, transparent 7.5em);
 }

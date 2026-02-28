@@ -77,13 +77,15 @@
                     document.getElementById("equal-sign").innerText="错误：";
                     document.getElementById("res-btns").style.display="none";
                     status(false);
+                    document.getElementById("ev-result").innerText=res;
                 }else{
                     resExists=true;
                     document.getElementById("res-btns").style.display="block";
                     document.getElementById("res").style.display="inline";
                     status(true);
+                    // 显示结果并检查是否需要截断
+                    displayResult(res);
                 }
-                document.getElementById("ev-result").innerText=res;
             }
             
             function updateInputBg(){
@@ -100,7 +102,7 @@
                 input.oninput=updateInputBg;
                 input.onfocus=function(){
                     input.select()
-                    if(resExists)input.value=document.getElementById("ev-result").innerText
+                    if(resExists)input.value=fullResultText
                     updateInputBg();
                 };
                 input.onblur=function(){
@@ -108,6 +110,36 @@
                 };
                 input.focus();
             }
+            function displayResult(text) {
+                const resultEl = document.getElementById("ev-result");
+                const truncatedEl = document.getElementById("ev-result-truncated");
+                const hintEl = document.getElementById("ev-result-hint");
+                
+                // 保存完整结果用于复制
+                fullResultText = text;
+                
+                // 先设置完整文本
+                resultEl.innerText = text;
+                resultEl.classList.remove("truncated");
+                truncatedEl.style.display = "none";
+                hintEl.style.display = "none";
+                
+                // 使用 requestAnimationFrame 确保 DOM 已更新
+                requestAnimationFrame(() => {
+                    // 计算行数
+                    const lineHeight = parseFloat(getComputedStyle(resultEl).lineHeight);
+                    const height = resultEl.scrollHeight;
+                    const lines = Math.round(height / lineHeight);
+                    
+                    if (lines > 5) {
+                        // 超过5行，添加截断样式
+                        resultEl.classList.add("truncated");
+                        truncatedEl.style.display = "inline";
+                        hintEl.style.display = "block";
+                    }
+                });
+            }
+            
             function ac(){
                 resExists=false;
                 document.getElementById("ev-input").value="";
@@ -115,14 +147,22 @@
                 document.getElementById("res-btns").style.display="none";
                 document.getElementById("equal-sign").style.color="black";
                 document.getElementById("equal-sign").innerText="=";
+                // 重置结果显示
+                document.getElementById("ev-result").innerText = "";
+                document.getElementById("ev-result").classList.remove("truncated");
+                document.getElementById("ev-result-truncated").style.display = "none";
+                document.getElementById("ev-result-hint").style.display = "none";
             }
+            // 存储完整结果用于复制
+            let fullResultText = "";
+            
             function copy_res(){
                 if(!resExists || !navigator.clipboard){
                     document.getElementById("res-copy").innerText="复制失败！";
                     document.getElementById("res-copy").style.color="red";
                     status(false);
                 }else{
-                    navigator.clipboard.writeText(document.getElementById("ev-result").innerText);
+                    navigator.clipboard.writeText(fullResultText);
                     document.getElementById("res-copy").innerText="已复制";
                     document.getElementById("res-copy").style.color="green";
                     status(true);
@@ -139,7 +179,7 @@
                     document.getElementById("res-copy").style.color="red";
                     status(false);
                 }else{
-                    navigator.clipboard.writeText(document.getElementById("ev-input").value + " = " + document.getElementById("ev-result").innerText);
+                    navigator.clipboard.writeText(document.getElementById("ev-input").value + " = " + fullResultText);
                     document.getElementById("res-copy").innerText="已复制完整算式";
                     document.getElementById("res-copy").style.color="green";
                     status(true);
@@ -156,7 +196,7 @@
                     document.getElementById("res-copy").style.color="red";
                     status(false);
                 }else{
-                    let val = document.getElementById("ev-result").innerText;
+                    let val = fullResultText;
                     // 直接存储字符串，不转换为 float（避免精度丢失）
                     memoryValue = val;
                     
@@ -211,7 +251,12 @@
                     <input type="text" id="ev-input" placeholder="请输入算式">
                     <button id="ev-calc" onclick="calc()">计算</button><br>
                     <span id="res" style="display:none;">
-                        <span id="equal-sign">=</span> <span id="ev-result"></span>
+                        <span id="equal-sign">=</span>
+                        <div id="ev-result-container">
+                            <span id="ev-result"></span>
+                            <span id="ev-result-truncated" style="display:none;">……</span>
+                        </div>
+                        <div id="ev-result-hint" style="display:none; font-size:12px; color:#666; margin-top:4px;">输出过长，请复制查看</div>
                     </span>
                 </div>
                 <div id="res-btns" style="display:none;">
