@@ -12,7 +12,7 @@ else:
 
 def start_server():
 	"""在后台线程启动 WSGI 服务器"""
-	run_server(debug=False, port=5000,DEBUG=DEBUG)
+	run_server(debug=False, port=5000,_DEBUG=DEBUG)
 
 
 def wait_for_server(url: str = "http://127.0.0.1:5000", timeout: int = 10) -> bool:
