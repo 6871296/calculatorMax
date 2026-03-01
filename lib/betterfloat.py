@@ -16,7 +16,7 @@ class BetterFloat:
 		- _exp: int - the exponent (10**exp is the divisor), i.e., number of decimal places
 		
 		Example: 1.23 -> _value=123, _exp=2
-		         12.3 -> _value=123, _exp=1
+				 12.3 -> _value=123, _exp=1
 	'''
 	
 	__slots__ = ('_value', '_exp', '_is_nan', '_is_inf', '_sign')
