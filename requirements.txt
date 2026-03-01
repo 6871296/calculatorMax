@@ -1,0 +1,3 @@
+flask
+pywebview>=3
+simpleeval
