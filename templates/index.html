@@ -19,8 +19,105 @@
             </p>
         </noscript>
         <script>
+            import { Fireworks } from 'https://esm.run/fireworks-js';
+
+            const container = document.querySelector('html');
+
+            const options = {
+            gravity: 1.4,
+            opacity: 0.4,
+            autoresize: true,
+            acceleration: 1.00,
+            };
+
+            let fireworks = new Fireworks(container, options);
+
             let resExists=false;
             let memoryValue = 0;
+            let l14514=false
+            const date=new Date()
+            let isafd=date.getMonth()===4 && date.getDay()===1
+            
+            // 窗口状态追踪
+            const windowState = {
+                visible: !document.hidden,
+                focused: document.hasFocus(),
+                // 判断窗口是否完全被遮挡（不可见或失去焦点）
+                isHidden() {
+                    return !this.visible || !this.focused;
+                }
+            };
+            
+            // 监听窗口状态变化
+            document.addEventListener('visibilitychange', () => {
+                windowState.visible = !document.hidden;
+                console.log('页面可见性:', windowState.visible ? '可见' : '隐藏');
+            });
+            
+            window.addEventListener('focus', () => {
+                windowState.focused = true;
+                console.log('窗口焦点: 获得');
+            });
+            
+            window.addEventListener('blur', () => {
+                windowState.focused = false;
+                console.log('窗口焦点: 失去');
+            });
+            
+            // 请求通知权限
+            function requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission().then(permission => {
+                        console.log('通知权限:', permission);
+                    });
+                }
+            }
+            
+            // 发送计算完成通知
+            function sendCalcNotification(expression, result, isError) {
+                if (!('Notification' in window)) {
+                    console.log('浏览器不支持 Notification API');
+                    return;
+                }
+                if (Notification.permission !== 'granted') {
+                    console.log('没有通知权限');
+                    return;
+                }
+                
+                const title = isError ? '❌ 计算出错' : '✓ 计算完成';
+                // 处理长文本
+                const maxExprLen = 30;
+                const maxResultLen = 50;
+                const shortExpr = expression.length > maxExprLen 
+                    ? expression.substring(0, maxExprLen) + '...' 
+                    : expression;
+                const shortResult = result.length > maxResultLen 
+                    ? result.substring(0, maxResultLen) + '...' 
+                    : result;
+                
+                const body = isError 
+                    ? `算式: ${shortExpr}\n错误: ${shortResult}`
+                    : `算式: ${shortExpr}\n结果: ${shortResult}`;
+                
+                try {
+                    const notification = new Notification(title, {
+                        body: body,
+                        tag: 'calc-result-' + Date.now(),
+                        requireInteraction: false,
+                        silent: false
+                    });
+                    
+                    // 点击通知时聚焦窗口
+                    notification.onclick = () => {
+                        window.focus();
+                        notification.close();
+                    };
+                    
+                    console.log('已发送通知:', title);
+                } catch (e) {
+                    console.error('发送通知失败:', e);
+                }
+            }
             
             function status(b){
                 if(b){
@@ -29,7 +126,7 @@
                 }
                 else{
                     document.querySelector("h1").style.color="red";
-                    setTimeout(function(){document.querySelector("h1").style.color="black";},1000);
+                    setTimeout(function(){document.querySelector("h1").style.color="black";document.querySelector("h1").textContent='CalculatorMax'},1000);
                 }
             }
             
@@ -37,6 +134,9 @@
                 let expression = document.getElementById("ev-input").value;
                 if(expression==='')return;
                 let calc_res;
+                
+                // 确保有通知权限（首次点击计算时请求）
+                requestNotificationPermission();
                 
                 try {
                     // 支持两种模式：pywebview 直接调用 和 HTTP API
@@ -69,6 +169,11 @@
                 
                 let res = calc_res[0];
                 let err = calc_res[1];
+                
+                // 检查窗口是否被遮挡，如果是则发送通知
+                if (windowState.isHidden()) {
+                    sendCalcNotification(expression, res, err);
+                }
                 
                 ac();
                 if(err){
@@ -208,6 +313,9 @@
                             body: JSON.stringify({value: val})  // 发送字符串
                         });
                     } catch(e) {
+                        document.getElementById("res-copy").innerText="记忆失败";
+                        document.getElementById("res-copy").style.color="red";
+                        status(false)
                         console.error('Failed to sync memory:', e);
                     }
                     
@@ -220,6 +328,10 @@
                     document.getElementById("res-copy").style.color="black";
                 },1000);
             }
+            function openDialog(id){
+                document.getElementById(id).showModal()
+            }
+
             // 页面加载完成后初始化
             document.addEventListener('DOMContentLoaded', onload);
         </script>
@@ -256,12 +368,24 @@
                             <span id="ev-result"></span>
                             <span id="ev-result-truncated" style="display:none;">……</span>
                         </div>
-                        <div id="ev-result-hint" style="display:none; font-size:12px; color:#666; margin-top:4px;">输出过长，请复制查看</div>
+                        <span id="ev-result-hint" style="display:none; font-size:12px; color:#666; margin-top:4px;">输出过长，请复制查看</span>
                     </span>
                 </div>
                 <div id="res-btns" style="display:none;">
                     <button id="res-copy" class="res-btn" onclick="copy_res()" ondblclick="copy_full()">复制</button>
                     <button id="res-mem" class="res-btn" onclick="mem_res()">记忆</button>
+                </div>
+                <div class="ctrl-center">
+                    <div id="ctrl-btns">
+                        <button id="ctrl-btn-mem" onclick="ctrlTab('mem')"></button>
+                        <button id="ctrl-btn-history" onclick="ctrlTab('history')"></button>
+                    </div>
+                    <div id="ctrl">
+                        <h3 id="ctrl-name"></h3>
+                        <div class="ctrl-part" id="ctrl-mem">
+                            
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
