@@ -28,3 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     apiLoaded();
 });
+
+
+const tips=['Tips还在制作中，敬请期待！']
+
+Math.random()
