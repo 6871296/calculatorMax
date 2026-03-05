@@ -9,7 +9,7 @@ class LogLevel:
     nolog=5
 
 class Logger:
-    loglevel=LogLevel.debug
+    loglevel=LogLevel.info
     @staticmethod
     def info(context:str):
         global loglevel

@@ -2,10 +2,12 @@ import threading
 import time
 import webview
 from server import run_server, app
+from lib.logger import Logger,LogLevel
 
 DEBUG=False
 
 if DEBUG:
+	Logger.loglevel=LogLevel.debug
 	print('[DEBUG MODE]\n\033[0;1;34mWelcome to use CalculatorMax!')
 else:
 	print('\033[0;1;32mWelcome to use CalculatorMax!')
@@ -34,20 +36,25 @@ def main(debug: bool = False):
 	server_thread.start()
 
 	# 等待服务器启动
-	print("\033[0m[App log]Starting server...") if debug else None
+	Logger.debug("\033[0m[App debug]Starting server...")
 	if not wait_for_server():
-		print("\033[0;1;37;41m[App FATAL]Timeout when starting the server!") if debug else None
+		Logger.fatal("\033[0;1;37;41m[App FATAL]Timeout when starting the server!")
 		return
-	print("\033[0;1;32mServer started!")
+	Logger.info("\033[0;1;32mServer started!")
+
+	URL='https://127.0.0.1:5000'
+	WIDTH=1200
+	HEIGHT=800
 
 	# 创建 PyWebview 窗口，加载本地服务器页面
 	window = webview.create_window(
 		title='CalculatorMax',
-		url='http://127.0.0.1:5000',
-		width=1200,
-		height=800
+		url=URL,
+		width=WIDTH,
+		height=HEIGHT
 	)
-	print('[App log]Created window CalculatorMax from source https://127.0.0.1:5000 size 1200*800px')
+	Logger.info('[App info]Created window CalculatorMax')
+	Logger.debug(f'[App Debug]Window info: url {URL} size {WIDTH}*{HEIGHT}')
 	def on_resized(window):
 		# 只有在 debug 模式下这行代码才显得必要
 		# 它会在调整大小结束后，强行把页面拉回来
@@ -59,10 +66,10 @@ def main(debug: bool = False):
 
 	# 启动 webview
 	webview.start(debug=debug)
-	print('[App log]Window closed! Stoppng server...')
+	Logger.info('[App info]Window closed! Stoppng server...')
 	server_thread.join(5)
 	print('exited')
 
 if __name__ == '__main__':
-	print('Starting main programm...')
+	Logger.info('Starting main programm...')
 	main(False)

@@ -3,12 +3,13 @@ from flask import request, jsonify
 from random import randint as py_randint, random as py_random, randrange as py_randrange, uniform as py_uniform
 from simpleeval import simple_eval
 from lib.betterfloat import *
+from lib.logger import *
 import re
 
 debugmode=None
 
 app = flask.Flask(__name__)
-print('Created Flask WSGI server')
+Logger.info('Created Flask WSGI server')
 
 # 存储内存值
 memory_value: BetterFloat = BetterFloat()
@@ -217,7 +218,7 @@ def api_mem():
 	"""API 端点：设置内存值"""
 	global memory_value,debugmode
 	if debugmode:
-		print('[Server log]Received memory_value changing by web server')
+		Logger.info('[Server info]Received memory_value changing by web server')
 	data = request.get_json()
 	memory_value = BetterFloat(data.get('value', 0))
 	return jsonify({'success': True})
@@ -227,9 +228,9 @@ def run_server(debug: bool = False, port: int = 5000,_DEBUG:bool=False):
 	global debugmode
 	debugmode=_DEBUG
 	if debugmode:
-		print(f'[Server log]Starting Flask WSGI server with arguments debug={debug} port={port}')
+		Logger.info(f'[Server info]Starting Flask WSGI server with arguments debug={debug} port={port}')
 	app.run(port=port, debug=debug, use_reloader=False, threaded=True)
 
 if __name__=='__main__':
-	print('CalculatrMax server side started!')
+	Logger.info('CalculatrMax server side started!')
 	run_server()
