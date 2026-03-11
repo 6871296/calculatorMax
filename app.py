@@ -4,11 +4,11 @@ import webview
 from server import run_server, app
 from lib.logger import Logger,LogLevel
 
-DEBUG=False
+DEBUG=False#True
 
 if DEBUG:
 	Logger.loglevel=LogLevel.debug
-	print('[DEBUG MODE]\n\033[0;1;34mWelcome to use CalculatorMax!')
+	print('\033[0;1;34m[DEBUG MODE]Welcome to use CalculatorMax!')
 else:
 	print('\033[0;1;32mWelcome to use CalculatorMax!')
 
@@ -42,7 +42,7 @@ def main(debug: bool = False):
 		return
 	Logger.info("\033[0;1;32mServer started!")
 
-	URL='https://127.0.0.1:5000'
+	URL='http://127.0.0.1:5000'
 	WIDTH=1200
 	HEIGHT=800
 

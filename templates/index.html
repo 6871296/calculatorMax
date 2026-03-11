@@ -18,7 +18,7 @@
 				</ul>
 			</p>
 		</noscript>
-		<script>
+		<script type="module">
 			import { Fireworks } from 'https://esm.run/fireworks-js';
 
 			const container = document.querySelector('html');
@@ -34,7 +34,9 @@
 
 			let resExists=false;
 			let memoryValue = 0;
-			let l14514=false
+			let l14514=false;
+			// 存储完整结果用于复制
+			let fullResultText = "";
 			const date=new Date()
 			let isafd=date.getMonth()===4 && date.getDay()===1
 			
@@ -144,11 +146,22 @@
 						let result = window.pywebview.api.calc(expression);
 						// 处理 Promise 或直接返回值
 						if (result && typeof result.then === 'function') {
-							calc_res = await result;
+							// Promise 解析后返回 {result, error} 对象，转换为数组
+							let data = await result;
+							calc_res = [data.result, data.error];
 						} else if (result && result.result !== undefined) {
+							// 已经是对象格式，转换为数组
 							calc_res = [result.result, result.error];
 						} else {
-							calc_res = result;
+							// 处理其他格式，确保转换为数组 [result, error]
+							if (Array.isArray(result)) {
+								calc_res = result;
+							} else if (typeof result === 'string') {
+								// 可能是直接返回的结果字符串
+								calc_res = [result, false];
+							} else {
+								calc_res = [String(result), false];
+							}
 						}
 					} else {
 						// HTTP 模式
@@ -175,21 +188,24 @@
 					sendCalcNotification(expression, res, err);
 				}
 				
-				ac();
 				if(err){
-					document.getElementById("res").style.display="inline";
-					document.getElementById("equal-sign").style.color="red";
-					document.getElementById("equal-sign").innerText="错误：";
+					document.getElementById("ev-res").style.display="inline";
+					document.getElementById("ev-equal-sign").style.color="red";
+					document.getElementById("ev-equal-sign").innerText="错误：";
 					document.getElementById("res-btns").style.display="none";
 					status(false);
 					document.getElementById("ev-result").innerText=res;
+					// 错误时只清空输入框，不清空结果区域
+					document.getElementById("ev-input").value="";
 				}else{
 					resExists=true;
 					document.getElementById("res-btns").style.display="block";
-					document.getElementById("res").style.display="inline";
+					document.getElementById("ev-res").style.display="inline";
 					status(true);
 					// 显示结果并检查是否需要截断
 					displayResult(res);
+					// 成功时清空输入框，保留结果显示
+					document.getElementById("ev-input").value="";
 				}
 			}
 			
@@ -248,19 +264,16 @@
 			function ac(){
 				resExists=false;
 				document.getElementById("ev-input").value="";
-				document.getElementById("res").style.display="none";
+				document.getElementById("ev-res").style.display="none";
 				document.getElementById("res-btns").style.display="none";
-				document.getElementById("equal-sign").style.color="black";
-				document.getElementById("equal-sign").innerText="=";
+				document.getElementById("ev-equal-sign").style.color="black";
+				document.getElementById("ev-equal-sign").innerText="=";
 				// 重置结果显示
 				document.getElementById("ev-result").innerText = "";
 				document.getElementById("ev-result").classList.remove("truncated");
 				document.getElementById("ev-result-truncated").style.display = "none";
 				document.getElementById("ev-result-hint").style.display = "none";
 			}
-			// 存储完整结果用于复制
-			let fullResultText = "";
-			
 			function copy_res(){
 				if(!resExists || !navigator.clipboard){
 					document.getElementById("res-copy").innerText="复制失败！";
@@ -334,6 +347,15 @@
 
 			// 页面加载完成后初始化
 			document.addEventListener('DOMContentLoaded', onload);
+			
+			// 暴露函数到全局作用域，供 HTML onclick 使用
+			window.calc = calc;
+			window.ac = ac;
+			window.copy_res = copy_res;
+			window.copy_full = copy_full;
+			window.mem_res = mem_res;
+			window.openDialog = openDialog;
+			window.displayResult = displayResult;
 		</script>
 		<style>
 		</style>

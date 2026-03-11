@@ -8,8 +8,8 @@ class LogLevel:
     fatal=4
     nolog=5
 
+loglevel=LogLevel.info
 class Logger:
-    loglevel=LogLevel.info
     @staticmethod
     def info(context:str):
         global loglevel
