@@ -23,6 +23,8 @@ class BetterFloat:
 	
 	# Context for decimal operations
 	_precision: int = 50  # Default precision for operations
+	_max_precision: int = 10000  # Maximum allowed precision to prevent memory issues
+	_max_exp: int = 50000  # Maximum allowed exponent (10^50000 is a huge number)
 	
 	def __init__(self, value: ConvertibleToBetterFloat = 0, *, exp: Optional[int] = None):
 		'''
@@ -36,8 +38,10 @@ class BetterFloat:
 		
 		if exp is not None:
 			# Direct construction: BetterFloat(123, exp=2) -> 1.23
+			exp_int = max(0, int(exp))
+			BetterFloat._check_exp(exp_int, "构造BetterFloat")
 			self._value = int(value)
-			self._exp = max(0, int(exp))
+			self._exp = exp_int
 			self._normalize()
 			return
 		
@@ -146,8 +150,10 @@ class BetterFloat:
 				int_part = int(int_part) if int_part else 0
 				
 				if frac_part:
-					self._value = sign * (int(str(int_part)) * (10 ** len(frac_part)) + int(frac_part))
-					self._exp = len(frac_part)
+					exp_val = len(frac_part)
+					BetterFloat._check_exp(exp_val, f"解析小数(长度{exp_val})")
+					self._value = sign * (int(str(int_part)) * (BetterFloat._safe_power10(exp_val, "解析小数") ) + int(frac_part))
+					self._exp = exp_val
 				else:
 					self._value = sign * int_part
 					self._exp = 0
@@ -236,12 +242,16 @@ class BetterFloat:
 		# Align exponents
 		if self._exp > other._exp:
 			# self has more decimal places
-			scale = 10 ** (self._exp - other._exp)
+			exp_diff = self._exp - other._exp
+			BetterFloat._check_exp(exp_diff, "加法对齐指数")
+			scale = BetterFloat._safe_power10(exp_diff, "加法对齐指数")
 			new_value = self._value + other._value * scale
 			new_exp = self._exp
 		elif self._exp < other._exp:
 			# other has more decimal places
-			scale = 10 ** (other._exp - self._exp)
+			exp_diff = other._exp - self._exp
+			BetterFloat._check_exp(exp_diff, "加法对齐指数")
+			scale = BetterFloat._safe_power10(exp_diff, "加法对齐指数")
 			new_value = self._value * scale + other._value
 			new_exp = other._exp
 		else:
@@ -271,11 +281,15 @@ class BetterFloat:
 		
 		# Align exponents
 		if self._exp > other._exp:
-			scale = 10 ** (self._exp - other._exp)
+			exp_diff = self._exp - other._exp
+			BetterFloat._check_exp(exp_diff, "减法对齐指数")
+			scale = BetterFloat._safe_power10(exp_diff, "减法对齐指数")
 			new_value = self._value - other._value * scale
 			new_exp = self._exp
 		elif self._exp < other._exp:
-			scale = 10 ** (other._exp - self._exp)
+			exp_diff = other._exp - self._exp
+			BetterFloat._check_exp(exp_diff, "减法对齐指数")
+			scale = BetterFloat._safe_power10(exp_diff, "减法对齐指数")
 			new_value = self._value * scale - other._value
 			new_exp = other._exp
 		else:
@@ -337,7 +351,9 @@ class BetterFloat:
 		# For division, we need to scale up to maintain precision
 		# Use precision limit to avoid infinite expansion
 		precision = BetterFloat._precision
-		scale = 10 ** (precision + other._exp - self._exp)
+		exp_needed = precision + other._exp - self._exp
+		BetterFloat._check_exp(exp_needed, "除法运算")
+		scale = BetterFloat._safe_power10(exp_needed, "除法运算")
 		new_value = (self._value * scale) // other._value
 		new_exp = precision
 		
@@ -460,11 +476,15 @@ class BetterFloat:
 		
 		# Align exponents and compare
 		if self._exp > other._exp:
-			scale = 10 ** (self._exp - other._exp)
+			exp_diff = self._exp - other._exp
+			BetterFloat._check_exp(exp_diff, "比较对齐指数")
+			scale = BetterFloat._safe_power10(exp_diff, "比较对齐指数")
 			sv = self._value
 			ov = other._value * scale
 		elif self._exp < other._exp:
-			scale = 10 ** (other._exp - self._exp)
+			exp_diff = other._exp - self._exp
+			BetterFloat._check_exp(exp_diff, "比较对齐指数")
+			scale = BetterFloat._safe_power10(exp_diff, "比较对齐指数")
 			sv = self._value * scale
 			ov = other._value
 		else:
@@ -530,7 +550,24 @@ class BetterFloat:
 	@classmethod
 	def set_precision(cls, precision: int) -> None:
 		'''Set the precision for division operations.'''
+		if precision > cls._max_precision:
+			raise OverflowError(f"精度不能超过 {cls._max_precision} 位")
 		cls._precision = max(1, precision)
+	
+	@staticmethod
+	def _check_exp(exp: int, context: str = "") -> None:
+		'''Check if exponent is within safe limits.'''
+		if exp > BetterFloat._max_exp:
+			raise OverflowError(f"指数过大 ({exp}), 超过最大限制 {BetterFloat._max_exp}{': ' + context if context else ''}")
+	
+	@staticmethod
+	def _safe_power10(exp: int, context: str = "") -> int:
+		'''Safely compute 10**exp with overflow check.'''
+		BetterFloat._check_exp(exp, context)
+		try:
+			return 10 ** exp
+		except MemoryError:
+			raise OverflowError(f"内存不足，无法计算 10^{exp}{': ' + context if context else ''}")
 	
 	@staticmethod
 	def sqrt(x: 'BetterFloat | int | float | str') -> 'BetterFloat':
@@ -712,7 +749,7 @@ class BetterFloat:
 		if x._exp == 0:
 			return BetterFloat(x._value)
 		# Python's // is already floor division
-		scale = 10 ** x._exp
+		scale = BetterFloat._safe_power10(x._exp, "floor运算")
 		return BetterFloat(x._value // scale)
 	
 	@staticmethod
@@ -722,7 +759,7 @@ class BetterFloat:
 			x = BetterFloat(x)
 		if x._exp == 0:
 			return BetterFloat(x._value)
-		scale = 10 ** x._exp
+		scale = BetterFloat._safe_power10(x._exp, "ceil运算")
 		# Use the identity: ceil(a/b) = -floor(-a/b)
 		return BetterFloat(-(-x._value // scale))
 	
@@ -734,7 +771,7 @@ class BetterFloat:
 		if x._exp == 0:
 			return BetterFloat(x._value)
 		# Truncate towards zero: use int() which truncates towards zero
-		scale = 10 ** x._exp
+		scale = BetterFloat._safe_power10(x._exp, "trunc运算")
 		if x._value >= 0:
 			return BetterFloat(x._value // scale)
 		else:
@@ -788,7 +825,10 @@ class BetterFloat:
 			b = BetterFloat(b)
 		if a._exp > 0 or b._exp > 0:
 			# Convert to integer representation
-			return BetterFloat(math.gcd(int(a * (10 ** max(a._exp, b._exp))), int(b * (10 ** max(a._exp, b._exp)))))
+			max_exp = max(a._exp, b._exp)
+			BetterFloat._check_exp(max_exp, "GCD运算")
+			scale = BetterFloat._safe_power10(max_exp, "GCD运算")
+			return BetterFloat(math.gcd(int(a * scale), int(b * scale)))
 		return BetterFloat(math.gcd(abs(a._value), abs(b._value)))
 	
 	@staticmethod
@@ -801,7 +841,10 @@ class BetterFloat:
 		if hasattr(math, 'lcm'):
 			# Python 3.9+
 			if a._exp > 0 or b._exp > 0:
-				return BetterFloat(math.lcm(int(a * (10 ** max(a._exp, b._exp))), int(b * (10 ** max(a._exp, b._exp)))))
+				max_exp = max(a._exp, b._exp)
+				BetterFloat._check_exp(max_exp, "LCM运算")
+				scale = BetterFloat._safe_power10(max_exp, "LCM运算")
+				return BetterFloat(math.lcm(int(a * scale), int(b * scale)))
 			return BetterFloat(math.lcm(abs(a._value), abs(b._value)))
 		else:
 			# Fallback for older Python
@@ -984,7 +1027,7 @@ class BetterFloat:
 	@property
 	def denominator(self) -> int:
 		'''Denominator of the rational representation.'''
-		return 10 ** self._exp
+		return BetterFloat._safe_power10(self._exp, "获取分母")
 	
 	@property
 	def decimal_places(self) -> int:

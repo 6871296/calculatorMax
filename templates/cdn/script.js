@@ -47,11 +47,20 @@ function initAPI() {
     apiLoaded();
 }
 
+// 生成指定范围内的随机整数
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const tips = ['Tips还在制作中，敬请期待！'];
+
 // 等待 DOM 加载完成
 document.addEventListener('DOMContentLoaded', function() {
     initAPI();
+    
+    // 设置随机提示
+    const tipsElement = document.getElementById('tips');
+    if (tipsElement) {
+        tipsElement.textContent = tips[randomInt(0, tips.length - 1)];
+    }
 });
-
-const tips=['Tips还在制作中，敬请期待！']
-
-Math.random()

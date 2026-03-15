@@ -112,3 +112,32 @@ html, body {
     -webkit-mask-image: linear-gradient(to bottom, black 4em, transparent 7.5em);
     mask-image: linear-gradient(to bottom, black 4em, transparent 7.5em);
 }
+footer{
+    background-color: black;
+    color:gray;
+    border-radius:1cm 1cm 0 0;
+    padding:0.5cm;
+}
+.tips{
+    margin:0.5cm;
+}
+.tips-title{
+    font-family: 'Aptos Narrow',system-ui;
+}
+#btn-totop{
+    border-radius: 3px;
+    height:0.5cm;
+    width:2cm;
+    border-color:grey;
+    color:grey;
+    border-width: 1px;
+    background-color:#0000;
+    padding:2px;
+}
+.ps-link{
+    color:gray;
+    text-decoration: none;
+}
+.ps-link:hover{
+    text-decoration-color:gray;
+}
