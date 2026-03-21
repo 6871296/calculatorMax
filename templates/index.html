@@ -398,49 +398,6 @@
 						<button id="res-mem" class="res-btn" onclick="mem_res()">记忆</button>
 					</div>
 				</div>
-				<h3>（筹备中）AI解方程</h3>
-				<div style="align-self:center;align-items:flex-start;display:none">
-					<input type="text" id="eq-input" placeholder="请输入方程">
-					<input type="text" id="uq-input" placeholder="请输入要求的未知数">
-					<button id="eq-solve" onclick="solveEquation()">解方程</button>
-					<span id="eq-res" style="display:none;">
-						<span id="equal-sign">=</span>
-						<div id="eq-result-container">
-							<span id="eq-result"></span>
-							<span id="eq-result-truncated" style="display:none;">……</span>
-						</div>
-						<span id="ev-result-hint" style="display:none; font-size:12px; color:#666; margin-top:4px;">输出过长，请复制查看</span>
-					</span>
-					<div id="res-btns" style="display:none;">
-						<button id="res-copy" class="res-btn" onclick="copy_res('eq')" ondblclick="copy_full('eq')">复制</button>
-						<button id="res-mem" class="res-btn" onclick="mem_res('eq')">记忆</button>
-					</div>
-				</div>
-				<h3>（筹备中）绘制图表</h3>
-				<div style="align-self:center;align-items:flex-start;display:none">
-					<div id="chart-details">
-
-					</div>
-					<button onclick="addChartDetail()">+</button>
-					<button onclick="drawChart()">绘制图表</button>
-					<img>
-					<div id="res-btns" style="display:none;">
-						<button id="res-copy" class="res-btn" onclick="copy_res('eq')" ondblclick="copy_full('eq')">复制</button>
-						<button id="res-mem" class="res-btn" onclick="mem_res('eq')">记忆</button>
-					</div>
-				</div>
-				<div class="ctrl-center" style="display:none">
-					<div id="ctrl-btns">
-						<button id="ctrl-btn-mem" onclick="ctrlTab('mem')"></button>
-						<button id="ctrl-btn-history" onclick="ctrlTab('history')"></button>
-					</div>
-					<div id="ctrl">
-						<h3 id="ctrl-name"></h3>
-						<div class="ctrl-part" id="ctrl-mem">
-							
-						</div>
-					</div>
-				</div>
 			</div>
 		</main>
 		<footer>

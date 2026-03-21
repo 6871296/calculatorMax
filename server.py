@@ -5,6 +5,9 @@ from simpleeval import simple_eval
 from lib.betterfloat import *
 from lib.logger import *
 import re
+import sympy as sp
+from sympy import symbols, solve, Eq, sympify, Poly, linear_eq_to_matrix, Matrix
+import numpy as np
 
 debugmode=None
 
@@ -222,6 +225,293 @@ def api_mem():
 	data = request.get_json()
 	memory_value = BetterFloat(data.get('value', 0))
 	return jsonify({'success': True})
+
+
+def validate_equation_input(equations, variables):
+    """
+    验证输入是否是有效的方程，并检查是否可以用程序求解。
+    
+    返回: (is_valid, can_solve, message)
+    - is_valid: 是否是有效的方程格式
+    - can_solve: 是否可以用程序求解
+    - message: 说明信息
+    """
+    if not equations or not isinstance(equations, list):
+        return False, False, "方程必须是列表格式"
+    
+    if not variables or not isinstance(variables, list):
+        return False, False, "变量必须是列表格式"
+    
+    if len(equations) == 0:
+        return False, False, "方程列表不能为空"
+    
+    if len(variables) == 0:
+        return False, False, "变量列表不能为空"
+    
+    if len(equations) != len(variables):
+        return False, False, f"方程数量({len(equations)})必须与变量数量({len(variables)})相等"
+    
+    # 检查变量名是否合法
+    var_names = []
+    for v in variables:
+        if not isinstance(v, str):
+            return False, False, f"变量名必须是字符串: {v}"
+        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', v):
+            return False, False, f"非法的变量名: {v}"
+        var_names.append(v)
+    
+    return True, True, "验证通过"
+
+
+def is_linear_system(exprs, vars):
+    """检查方程组是否是线性方程组"""
+    try:
+        for expr in exprs:
+            # 转换为 sympy 表达式
+            if isinstance(expr, str):
+                if '=' in expr:
+                    left, right = expr.split('=', 1)
+                    expr = sympify(f"({left}) - ({right})")
+                else:
+                    expr = sympify(expr)
+            
+            # 检查是否为多项式
+            if not expr.is_polynomial(*vars):
+                return False
+            
+            # 检查每个变量的次数是否都不超过1
+            poly = Poly(expr, *vars)
+            for monom in poly.monoms():
+                if sum(monom) > 1:
+                    return False
+        return True
+    except Exception:
+        return False
+
+
+def is_polynomial_system(exprs, vars):
+    """检查方程组是否是多项式方程组"""
+    try:
+        for expr in exprs:
+            if isinstance(expr, str):
+                if '=' in expr:
+                    left, right = expr.split('=', 1)
+                    expr = sympify(f"({left}) - ({right})")
+                else:
+                    expr = sympify(expr)
+            
+            if not expr.is_polynomial(*vars):
+                return False
+        return True
+    except Exception:
+        return False
+
+
+def solve_linear_system(equations, variables):
+    """求解线性方程组"""
+    try:
+        # 创建符号
+        var_symbols = symbols(variables)
+        if not isinstance(var_symbols, (list, tuple)):
+            var_symbols = [var_symbols]
+        
+        # 构建 sympy 等式
+        eqs = []
+        for eq_str in equations:
+            if isinstance(eq_str, str) and '=' in eq_str:
+                left, right = eq_str.split('=', 1)
+                eqs.append(Eq(sympify(left), sympify(right)))
+            else:
+                eqs.append(Eq(sympify(eq_str), 0))
+        
+        # 使用线性代数方法求解
+        solution = solve(eqs, var_symbols, dict=True)
+        
+        if not solution:
+            return {"success": True, "type": "线性方程组", "solution": "无解"}
+        
+        # 格式化解
+        result = {}
+        for sol in solution:
+            if isinstance(sol, dict):
+                for var, val in sol.items():
+                    result[str(var)] = str(val)
+            else:
+                result[str(var_symbols[0])] = str(sol)
+        
+        return {
+            "success": True,
+            "type": "线性方程组",
+            "solution": result,
+            "method": "精确解（线性代数）"
+        }
+    except Exception as e:
+        return {"success": False, "error": f"求解失败: {str(e)}"}
+
+
+def solve_polynomial_system(equations, variables):
+    """求解多项式方程组"""
+    try:
+        var_symbols = symbols(variables)
+        if not isinstance(var_symbols, (list, tuple)):
+            var_symbols = [var_symbols]
+        
+        # 构建 sympy 等式
+        eqs = []
+        for eq_str in equations:
+            if isinstance(eq_str, str) and '=' in eq_str:
+                left, right = eq_str.split('=', 1)
+                eqs.append(Eq(sympify(left), sympify(right)))
+            else:
+                eqs.append(Eq(sympify(eq_str), 0))
+        
+        # 求解
+        solution = solve(eqs, var_symbols, dict=True)
+        
+        if not solution:
+            return {"success": True, "type": "多项式方程组", "solution": "无解"}
+        
+        # 格式化所有解
+        solutions_list = []
+        for sol in solution:
+            sol_dict = {}
+            for var, val in sol.items():
+                sol_dict[str(var)] = str(val)
+            solutions_list.append(sol_dict)
+        
+        return {
+            "success": True,
+            "type": "多项式方程组",
+            "solutions": solutions_list,
+            "solution_count": len(solutions_list),
+            "method": "符号计算（Grobner基/结式）"
+        }
+    except Exception as e:
+        return {"success": False, "error": f"求解失败: {str(e)}"}
+
+
+def solve_numerical_system(equations, variables, initial_guess=None):
+    """使用数值方法求解非线性方程组"""
+    try:
+        var_symbols = symbols(variables)
+        if not isinstance(var_symbols, (list, tuple)):
+            var_symbols = [var_symbols]
+        
+        # 构建 sympy 等式（转换为 f(x)=0 形式）
+        funcs = []
+        for eq_str in equations:
+            if isinstance(eq_str, str) and '=' in eq_str:
+                left, right = eq_str.split('=', 1)
+                funcs.append(sympify(f"({left}) - ({right})"))
+            else:
+                funcs.append(sympify(eq_str))
+        
+        # 使用 nsolve 进行数值求解
+        if initial_guess is None:
+            initial_guess = [0.0] * len(variables)
+        
+        solution = sp.nsolve(funcs, var_symbols, initial_guess, tol=1e-14, maxsteps=100)
+        
+        # 格式化解
+        result = {}
+        for i, var in enumerate(variables):
+            result[var] = str(solution[i])
+        
+        return {
+            "success": True,
+            "type": "非线性方程组",
+            "solution": result,
+            "method": "数值求解（牛顿迭代法）",
+            "note": "这是数值近似解，精度约为 1e-14"
+        }
+    except Exception as e:
+        return {"success": False, "error": f"数值求解失败: {str(e)}"}
+
+
+@app.route('/api/solve', methods=['POST'])
+def api_solve():
+    """
+    API 端点：求解方程（组）
+    
+    请求体格式：
+    {
+        "equations": ["2*x + 3*y = 7", "x - y = 1"],  // 方程列表
+        "variables": ["x", "y"],                      // 变量列表
+        "initial_guess": [0, 0]                        // （可选）数值求解的初始猜测
+    }
+    
+    返回：
+    - 成功：求解结果
+    - 失败：错误信息
+    """
+    print('[Server log] Received equation solving request')
+    
+    data = request.get_json()
+    equations = data.get('equations', [])
+    variables = data.get('variables', [])
+    initial_guess = data.get('initial_guess', None)
+    
+    # 1. 验证输入
+    is_valid, can_solve, message = validate_equation_input(equations, variables)
+    
+    if not is_valid:
+        return jsonify({
+            'success': False,
+            'error': message,
+            'error_type': '输入验证失败'
+        }), 400
+    
+    try:
+        # 2. 解析方程为 sympy 表达式以判断类型
+        var_symbols = symbols(variables)
+        if not isinstance(var_symbols, (list, tuple)):
+            var_symbols = [var_symbols]
+        
+        exprs = []
+        for eq_str in equations:
+            if not isinstance(eq_str, str):
+                return jsonify({
+                    'success': False,
+                    'error': f'方程必须是字符串: {eq_str}',
+                    'error_type': '输入格式错误'
+                }), 400
+            
+            # 转换为表达式
+            if '=' in eq_str:
+                left, right = eq_str.split('=', 1)
+                expr = sympify(f"({left}) - ({right})")
+            else:
+                expr = sympify(eq_str)
+            exprs.append(expr)
+        
+        # 3. 判断方程类型并求解
+        if is_linear_system(exprs, var_symbols):
+            result = solve_linear_system(equations, variables)
+        elif is_polynomial_system(exprs, var_symbols):
+            result = solve_polynomial_system(equations, variables)
+        else:
+            # 非多项式方程组，尝试数值求解
+            if initial_guess is not None:
+                result = solve_numerical_system(equations, variables, initial_guess)
+            else:
+                # 默认尝试 [0, 0, ...] 作为初始猜测
+                result = solve_numerical_system(equations, variables, [0.0] * len(variables))
+        
+        if debugmode:
+            print(f'[Server log] Equation solve result: {result}')
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        error_msg = str(e)
+        if debugmode:
+            print(f'[Server warning] Equation solving error: {error_msg}')
+        
+        return jsonify({
+            'success': False,
+            'error': f'求解过程出错: {error_msg}',
+            'error_type': '求解错误'
+        }), 500
 
 
 def run_server(debug: bool = False, port: int = 5000,_DEBUG:bool=False):

@@ -1,3 +1,5 @@
 flask
 pywebview>=3
 simpleeval
+sympy
+numpy
