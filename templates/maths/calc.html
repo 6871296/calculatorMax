@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<script src="/assets/script.js"></script>
+		<script src="/assets/maths.js"></script>
+		<meta charset="UTF-8">
+		<title>首页 - calculatorMax</title>
+		<link rel="stylesheet" href="/assets/style.css">
+	</head>
+	<body class="app-container">
+		<noscript>
+			<h1>啊哦 :(</h1>
+			<p>
+				JavaScript不支持
+				<strong>可能的解决办法：</strong>
+				<ul>
+					<li>升级PyWebview: <code>pip install --upgrade pywebview</code></li>
+					<li>联系开发者</li>
+				</ul>
+			</p>
+		</noscript>
+		<script type="module">
+			import { Fireworks } from 'https://esm.run/fireworks-js';
+
+			const container = document.querySelector('html');
+
+			const options = {
+			gravity: 1.4,
+			opacity: 0.4,
+			autoresize: true,
+			acceleration: 1.00,
+			};
+
+			let fireworks = new Fireworks(container, options);
+
+			let resExists=false;
+			let memoryValue = 0;
+			let l14514=false;
+			// 存储完整结果用于复制
+			let fullResultText = "";
+			const date=new Date()
+			let isafd=date.getMonth()===4 && date.getDay()===1
+		</script>
+		<script type="module">
+			async function calc(){
+				let expression = document.getElementById("ev-input").value;
+				if(expression==='')return;
+				let calc_res;
+				
+				// 确保有通知权限（首次点击计算时请求）
+				requestNotificationPermission();
+				
+				try {
+					// 支持两种模式：pywebview 直接调用 和 HTTP API
+					if (window.pywebview && window.pywebview.api && window.pywebview.api.calc) {
+						let result = window.pywebview.api.calc(expression);
+						// 处理 Promise 或直接返回值
+						if (result && typeof result.then === 'function') {
+							// Promise 解析后返回 {result, error} 对象，转换为数组
+							let data = await result;
+							calc_res = [data.result, data.error];
+						} else if (result && result.result !== undefined) {
+							// 已经是对象格式，转换为数组
+							calc_res = [result.result, result.error];
+						} else {
+							// 处理其他格式，确保转换为数组 [result, error]
+							if (Array.isArray(result)) {
+								calc_res = result;
+							} else if (typeof result === 'string') {
+								// 可能是直接返回的结果字符串
+								calc_res = [result, false];
+							} else {
+								calc_res = [String(result), false];
+							}
+						}
+					} else {
+						// HTTP 模式
+						let response = await fetch('/api/maths/calc', {
+							method: 'POST',
+							headers: {'Content-Type': 'application/json'},
+							body: JSON.stringify({expression: expression})
+						});
+						let data = await response.json();
+						calc_res = [data.result, data.error];
+					}
+					status(true)
+				} catch (e) {
+					console.error(e);
+					calc_res = ['计算错误: ' + e.message, true];
+					status(false)
+				}
+				
+				let res = calc_res[0];
+				let err = calc_res[1];
+				
+				// 检查窗口是否被遮挡，如果是则发送通知
+				if (windowState.isHidden()) {
+					sendCalcNotification(expression, res, err);
+				}
+				
+				if(err){
+					document.getElementById("ev-res").style.display="inline";
+					document.getElementById("ev-equal-sign").style.color="red";
+					document.getElementById("ev-equal-sign").innerText="错误：";
+					document.getElementById("res-btns").style.display="none";
+					status(false);
+					document.getElementById("ev-result").innerText=res;
+					// 错误时只清空输入框，不清空结果区域
+					document.getElementById("ev-input").value="";
+				}else{
+					resExists=true;
+					document.getElementById("res-btns").style.display="block";
+					document.getElementById("ev-res").style.display="inline";
+					status(true);
+					// 显示结果并检查是否需要截断
+					displayResult(res);
+					// 成功时清空输入框，保留结果显示
+					document.getElementById("ev-input").value="";
+				}
+			}
+		</script>
+		<style>
+		</style>
+		<nav>
+			<div class="navdiv-l">
+				<a href="/" class="navbox">
+					<strong class="navitem">CalculatorMax</strong>
+				</a>
+				<a href="/maths/calc" class="navbox">
+					<span class="navitem">计算器</span>
+				</a>
+				<a href="/maths/fx" class="navbox">
+					<span class="navitem">解方程</span>
+				</a>
+				<a href="/matplot" class="navbox">
+					<span class="navitem">统计图绘制</span>
+				</a>
+				<a href="/painter2d" class="navbox" style="display:none">
+					<span class="navitem">(Beta)2D绘图</span>
+				</a>
+				<a href="/painter3d" class="navbox" style="display:none">
+					<span class="navitem">(Beta)3D绘图</span>
+				</a>
+			</div>
+			<div class="navdiv-r">
+				<a href="/about" class="navbox">
+					<span class="navitem">文档</span>
+				</a>
+				<a href="/settings" class="navbox">
+					<span class="navitem">设置</span>
+				</a>
+				<a href="https://github.com/6871296/maths/calculatorMax" class="navbox">
+					<span class="navitem"><img src="https://github.githubassets.com/favicons/favicon.svg" class="github-icon"></span>
+				</a>
+			</div>
+		</nav>
+		<main class="mid">
+			<h1>计算器</h1>
+			<div class="mid white round" style="margin: 1cm; width: calc(100% - 2cm); box-sizing: border-box;">
+				<div style="align-self:center;align-items:flex-start;">
+					<input type="text" id="ev-input" placeholder="请输入算式">
+					<button id="ev-calc" onclick="calc()">计算</button><br>
+					<span id="ev-res" style="display:none;">
+						<span id="ev-equal-sign">=</span>
+						<div id="ev-result-container">
+							<span id="ev-result"></span>
+							<span id="ev-result-truncated" style="display:none;">……</span>
+						</div>
+						<span id="ev-result-hint" style="display:none; font-size:12px; color:#666; margin-top:4px;">输出过长，请复制查看</span>
+					</span>
+					<div id="res-btns" style="display:none;">
+						<button id="res-copy" class="res-btn" onclick="copy_res()" ondblclick="copy_full()">复制</button>
+						<button id="res-mem" class="res-btn" onclick="mem_res()">记忆</button>
+					</div>
+				</div>
+			</div>
+		</main>
+		<footer>
+			<div class="tips">
+				<h3 id="tips-title">Tips</h3>
+				<span id="tips">正在加载中……</span>
+			</div>
+			<button onclick="document.documentElement.scrollTop = 0;" id="btn-totop">回到顶部</button><br>
+			CalculatorMax by <a href="https://github.com/6872196" class="ps-link">6871296</a><br>
+			可随意分发，但请注明原作者！
+		</footer>
+	</body>
+</html>

@@ -84,30 +84,28 @@ def convert_expr_to_betterfloat(expr: str) -> str:
 	return result
 
 
-@app.route('/<page>')
-def index(page):
-	global debugmode
-	return flask.render_template(f'{page}/index.html',debug=debugmode)
-
-
 @app.route('/')
 def main():
 	global debugmode
-	return flask.redirect('/calc')
+	return flask.redirect('/maths/calc')
 	#return flask.render_template('index.html')
 
-@app.route('/calc')
+@app.route('/maths/calc')
 def calc():
 	global debugmode
-	return flask.render_template('calc.html')
+	return flask.render_template('maths/calc.html')
 
 
 @app.route('/assets/<file>')
 def cdn(file):
 	return flask.send_file(f'./templates/cdn/{file}')
 
+@app.route('/a/<path>')
+def autoroute(path):
+    return flask.render_template(f'a/{path}')
 
-@app.route('/api/calc', methods=['POST'])
+
+@app.route('/api/maths/calc', methods=['POST'])
 def api_calc():
 	print('[Server log]Received calculation by web server')
 	"""API 端点：计算表达式"""
@@ -432,7 +430,7 @@ def solve_numerical_system(equations, variables, initial_guess=None):
 		return {"success": False, "error": f"数值求解失败: {str(e)}"}
 
 
-@app.route('/api/solve', methods=['POST'])
+@app.route('/api/solvefx', methods=['POST'])
 def api_solve():
 	"""
 	API 端点：求解方程（组）

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas 2D 示例</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        h1 { text-align: center; }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .canvas-box {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #0f3460;
+            border-radius: 5px;
+            background: #000;
+        }
+        .label {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Canvas 2D 绘图示例</h1>
+    <div class="container">
+        <!-- 示例1：基础形状 -->
+        <div class="canvas-box">
+            <canvas id="shapes" width="300" height="200"></canvas>
+            <div class="label">基础形状</div>
+        </div>
+
+        <!-- 示例2：路径和曲线 -->
+        <div class="canvas-box">
+            <canvas id="paths" width="300" height="200"></canvas>
+            <div class="label">路径与曲线</div>
+        </div>
+
+        <!-- 示例3：渐变和阴影 -->
+        <div class="canvas-box">
+            <canvas id="gradient" width="300" height="200"></canvas>
+            <div class="label">渐变与阴影</div>
+        </div>
+
+        <!-- 示例4：动画效果 -->
+        <div class="canvas-box">
+            <canvas id="animation" width="300" height="200"></canvas>
+            <div class="label">粒子动画（点击画布）</div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 示例1：基础形状 ====================
+        const shapesCanvas = document.getElementById('shapes');
+        const shapesCtx = shapesCanvas.getContext('2d');
+
+        // 填充矩形
+        shapesCtx.fillStyle = '#e94560';
+        shapesCtx.fillRect(20, 20, 80, 60);
+
+        // 描边矩形
+        shapesCtx.strokeStyle = '#00d9ff';
+        shapesCtx.lineWidth = 3;
+        shapesCtx.strokeRect(120, 20, 80, 60);
+
+        // 圆形
+        shapesCtx.beginPath();
+        shapesCtx.arc(60, 130, 40, 0, Math.PI * 2);
+        shapesCtx.fillStyle = '#f9a825';
+        shapesCtx.fill();
+        shapesCtx.strokeStyle = '#fff';
+        shapesCtx.stroke();
+
+        // 半圆（扇形）
+        shapesCtx.beginPath();
+        shapesCtx.arc(200, 130, 40, 0, Math.PI);
+        shapesCtx.fillStyle = '#7c4dff';
+        shapesCtx.fill();
+
+        // 三角形
+        shapesCtx.beginPath();
+        shapesCtx.moveTo(260, 30);
+        shapesCtx.lineTo(230, 90);
+        shapesCtx.lineTo(290, 90);
+        shapesCtx.closePath();
+        shapesCtx.fillStyle = '#00e676';
+        shapesCtx.fill();
+
+        // ==================== 示例2：路径和曲线 ====================
+        const pathsCanvas = document.getElementById('paths');
+        const pathsCtx = pathsCanvas.getContext('2d');
+
+        // 贝塞尔曲线（心形）
+        pathsCtx.beginPath();
+        pathsCtx.moveTo(150, 100);
+        pathsCtx.bezierCurveTo(150, 90, 130, 60, 100, 60);
+        pathsCtx.bezierCurveTo(60, 60, 60, 110, 60, 110);
+        pathsCtx.bezierCurveTo(60, 140, 100, 170, 150, 190);
+        pathsCtx.bezierCurveTo(200, 170, 240, 140, 240, 110);
+        pathsCtx.bezierCurveTo(240, 110, 240, 60, 200, 60);
+        pathsCtx.bezierCurveTo(170, 60, 150, 90, 150, 100);
+        pathsCtx.fillStyle = '#ff1744';
+        pathsCtx.fill();
+
+        // 二次贝塞尔曲线
+        pathsCtx.beginPath();
+        pathsCtx.moveTo(20, 150);
+        pathsCtx.quadraticCurveTo(80, 50, 140, 150);
+        pathsCtx.strokeStyle = '#00e5ff';
+        pathsCtx.lineWidth = 3;
+        pathsCtx.stroke();
+
+        // 多边形（六边形）
+        pathsCtx.beginPath();
+        const centerX = 250, centerY = 140, radius = 40;
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 3) * i - Math.PI / 2;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            if (i === 0) pathsCtx.moveTo(x, y);
+            else pathsCtx.lineTo(x, y);
+        }
+        pathsCtx.closePath();
+        pathsCtx.fillStyle = '#ffea00';
+        pathsCtx.fill();
+        pathsCtx.strokeStyle = '#ff6f00';
+        pathsCtx.stroke();
+
+        // ==================== 示例3：渐变和阴影 ====================
+        const gradCanvas = document.getElementById('gradient');
+        const gradCtx = gradCanvas.getContext('2d');
+
+        // 线性渐变
+        const linearGrad = gradCtx.createLinearGradient(0, 0, 300, 200);
+        linearGrad.addColorStop(0, '#ff0066');
+        linearGrad.addColorStop(0.5, '#ffcc00');
+        linearGrad.addColorStop(1, '#00ccff');
+
+        gradCtx.fillStyle = linearGrad;
+        gradCtx.fillRect(0, 0, 300, 100);
+
+        // 径向渐变
+        const radialGrad = gradCtx.createRadialGradient(150, 150, 10, 150, 150, 80);
+        radialGrad.addColorStop(0, '#fff');
+        radialGrad.addColorStop(0.3, '#ff69b4');
+        radialGrad.addColorStop(1, '#8b008b');
+
+        gradCtx.fillStyle = radialGrad;
+        gradCtx.beginPath();
+        gradCtx.arc(150, 150, 80, 0, Math.PI * 2);
+        gradCtx.fill();
+
+        // 阴影文字
+        gradCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        gradCtx.shadowBlur = 10;
+        gradCtx.shadowOffsetX = 5;
+        gradCtx.shadowOffsetY = 5;
+        gradCtx.font = 'bold 30px Arial';
+        gradCtx.fillStyle = '#fff';
+        gradCtx.textAlign = 'center';
+        gradCtx.fillText('Canvas 2D', 150, 55);
+
+        // ==================== 示例4：粒子动画 ====================
+        const animCanvas = document.getElementById('animation');
+        const animCtx = animCanvas.getContext('2d');
+
+        const particles = [];
+        const colors = ['#e94560', '#00d9ff', '#f9a825', '#7c4dff', '#00e676'];
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.radius = Math.random() * 5 + 2;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.life = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.2; // 重力
+                this.life -= 0.02;
+                this.radius *= 0.98;
+            }
+
+            draw() {
+                animCtx.globalAlpha = this.life;
+                animCtx.beginPath();
+                animCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                animCtx.fillStyle = this.color;
+                animCtx.fill();
+                animCtx.globalAlpha = 1;
+            }
+        }
+
+        function animate() {
+            // 拖尾效果
+            animCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            animCtx.fillRect(0, 0, animCanvas.width, animCanvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // 点击产生粒子爆炸
+        animCanvas.addEventListener('click', (e) => {
+            const rect = animCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            for (let i = 0; i < 20; i++) {
+                particles.push(new Particle(x, y));
+            }
+        });
+
+        // 自动演示
+        setInterval(() => {
+            const x = Math.random() * animCanvas.width;
+            const y = Math.random() * animCanvas.height;
+            for (let i = 0; i < 15; i++) {
+                particles.push(new Particle(x, y));
+            }
+        }, 1000);
+
+        animate();
+    </script>
+</body>
+</html>
