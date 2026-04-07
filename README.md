@@ -1,4 +1,3 @@
-请先阅读[这个issue](https://github.com/6871296/calculatorMax/issues/30)
 # CalculatorMax 软件说明书
 
 新的GUI正在制作中！
