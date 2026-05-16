@@ -1,10 +1,10 @@
-# CalculatorMax 软件说明书
+# CalculatorMax
 
 新的GUI正在制作中！
 
 新GUI设计的还不错，但是有点更像是网页而不是应用程序。有没有前端设计好一点的，帮一下我呗~
 
-现在经典的`eval()`计算已被弃用，只能用`simpleeval`模式了，之后会看看能不能出个开发者模式，方便大家的调试
+**Windows Python3.14用户注意：由于[#33](https://github.com/6871296/calculatorMax/issues/33)中的问题，目前CalculatorMax暂不支持Python3.14。如必须使用，请下载`pythonnet`的`v3.1.0-rc0`测试版。**
 
 ## 专有名词讲解
 
