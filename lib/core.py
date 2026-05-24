@@ -1,6 +1,10 @@
-import sys
+import sys,re
+from sympy import *
+from random import *
+from simpleeval import simple_eval
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from lib.betterfloat import *
 
 # 存储内存值
 memory_value: BetterFloat = BetterFloat()
@@ -72,42 +76,25 @@ def convert_expr_to_betterfloat(expr: str) -> str:
 	result = re.sub(number_pattern, replace_number, expr)
 	return result
 
+class CalculatorMaxError(Exception):
+	def __init__(self,info:str|None=None):
+		self.info=info
+		super().__init__(info)
+	def __str__(self):
+		return self.info
+class CalculatorMaxEvalError(CalculatorMaxError):
+    pass
+class CalculatorMaxSolveError(CalculatorMaxError):
+    pass
 
-@app.route('/')
-def main():
-	global debugmode
-	return flask.redirect('/maths/calc')
-	#return flask.render_template('index.html')
-
-@app.route('/maths/calc')
-def calc():
-	global debugmode
-	return flask.render_template('maths/calc.html')
-
-
-@app.route('/assets/<file>')
-def cdn(file):
-	return flask.send_file(f'./templates/cdn/{file}')
-
-@app.route('/a/<path>')
-def autoroute(path):
-    return flask.render_template(f'a/{path}')
-
-
-@app.route('/api/maths/calc', methods=['POST'])
-def api_calc():
-	print('[Server log]Received calculation by web server')
-	"""API 端点：计算表达式"""
-	global memory_value,debugmode
-	data = request.get_json()
-	ev = data.get('expression', '')
+def calc(ev:str):
+	"""[CalculatorMax]计算表达式"""
+	global memory_value
 	
 	f = '未知错误'
 	err = True
 	
 	try:
-		if debugmode:
-			print(f'[Server log]Evauating: {ev}')
 		ev = ev.replace("m", "m()")
 		ev = ev.replace("pi", "pi()")
 		ev = ev.replace("e", "e()")
@@ -156,10 +143,10 @@ def api_calc():
 			"s_tra": lambda a, b, c: s_tra(a, b, c),
 			"hsf_s_tri": lambda a, b, c: hsf_s_tri(a, b, c),
 			"pt": lambda a, b: pt(a, b),
-			"randint": lambda a, b: py_randint(int(BetterFloat(a)), int(BetterFloat(b))),
-			"random": lambda: BetterFloat(py_random()),
-			"randrange": lambda a, b: py_randrange(int(BetterFloat(a)), int(BetterFloat(b))),
-			"uniform": lambda a, b: BetterFloat(py_uniform(float(BetterFloat(a)), float(BetterFloat(b)))),
+			"randint": lambda a, b: randint(int(BetterFloat(a)), int(BetterFloat(b))),
+			"random": lambda: BetterFloat(random()),
+			"randrange": lambda a, b: randrange(int(BetterFloat(a)), int(BetterFloat(b))),
+			"uniform": lambda a, b: BetterFloat(uniform(float(BetterFloat(a)), float(BetterFloat(b)))),
 			"bitand": lambda a, b: int(BetterFloat(a)) & int(BetterFloat(b)),
 			"bitor": lambda a, b: int(BetterFloat(a)) | int(BetterFloat(b)),
 			"bitnot": lambda a: ~int(BetterFloat(a)),
@@ -200,23 +187,12 @@ def api_calc():
 			f = '可能不是数学算式'
 	else:
 		err = False
-	if debugmode:
-		if err:
-			print('\033[0;1;33m[Server warning]Error evaluation!\033[0m')
-		else:
-			print(f'[Server log]Evaluation result:{f}')
-	return jsonify({'result': f, 'error': err})
+	return err,f
 
-
-@app.route('/api/mem', methods=['POST'])
-def api_mem():
-	"""API 端点：设置内存值"""
-	global memory_value,debugmode
-	if debugmode:
-		Logger.info('[Server info]Received memory_value changing by web server')
-	data = request.get_json()
-	memory_value = BetterFloat(data.get('value', 0))
-	return jsonify({'success': True})
+def api_mem(value:int|float|BetterFloat):
+	"""[CalculatorMax]设置内存值"""
+	global memory_value
+	memory_value = BetterFloat(value)
 
 
 def validate_equation_input(equations, variables):
@@ -402,7 +378,7 @@ def solve_numerical_system(equations, variables, initial_guess=None):
 		if initial_guess is None:
 			initial_guess = [0.0] * len(variables)
 		
-		solution = sp.nsolve(funcs, var_symbols, initial_guess, tol=1e-14, maxsteps=100)
+		solution = nsolve(funcs, var_symbols, initial_guess, tol=1e-14, maxsteps=100)
 		
 		# 格式化解
 		result = {}
@@ -419,10 +395,9 @@ def solve_numerical_system(equations, variables, initial_guess=None):
 		return {"success": False, "error": f"数值求解失败: {str(e)}"}
 
 
-@app.route('/api/solvefx', methods=['POST'])
-def api_solve():
+def api_solve(equations:Iterable[str],variables:Iterable[str],initial_guess):
 	"""
-	API 端点：求解方程（组）
+	[CalculatorMax]求解方程（组）
 	
 	请求体格式：
 	{
@@ -437,20 +412,11 @@ def api_solve():
 	"""
 	print('[Server log] Received equation solving request')
 	
-	data = request.get_json()
-	equations = data.get('equations', [])
-	variables = data.get('variables', [])
-	initial_guess = data.get('initial_guess', None)
-	
 	# 1. 验证输入
 	is_valid, can_solve, message = validate_equation_input(equations, variables)
 	
 	if not is_valid:
-		return jsonify({
-			'success': False,
-			'error': message,
-			'error_type': '输入验证失败'
-		}), 400
+		raise CalculatorMaxSolveError(message)
 	
 	try:
 		# 2. 解析方程为 sympy 表达式以判断类型
@@ -461,11 +427,7 @@ def api_solve():
 		exprs = []
 		for eq_str in equations:
 			if not isinstance(eq_str, str):
-				return jsonify({
-					'success': False,
-					'error': f'方程必须是字符串: {eq_str}',
-					'error_type': '输入格式错误'
-				}), 400
+				raise CalculatorMaxSolveError('参数填写不规范')
 			
 			# 转换为表达式
 			if '=' in eq_str:
@@ -488,18 +450,8 @@ def api_solve():
 				# 默认尝试 [0, 0, ...] 作为初始猜测
 				result = solve_numerical_system(equations, variables, [0.0] * len(variables))
 		
-		if debugmode:
-			print(f'[Server log] Equation solve result: {result}')
-		
-		return jsonify(result)
+		return result
 		
 	except Exception as e:
 		error_msg = str(e)
-		if debugmode:
-			print(f'[Server warning] Equation solving error: {error_msg}')
-		
-		return jsonify({
-			'success': False,
-			'error': f'求解过程出错: {error_msg}',
-			'error_type': '求解错误'
-		}), 500
+		raise CalculatorMaxSolveError(error_msg)
