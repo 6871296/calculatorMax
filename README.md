@@ -1,6 +1,9 @@
 # CalculatorMax 软件说明书
 
 新的GUI正在制作中！
+## 社区版
+
+[Rust移植](https://github.com/wumingshiali/calculatorMax-Rust)
 
 ## 专有名词讲解
 
