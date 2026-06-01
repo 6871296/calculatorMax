@@ -1,5 +1,6 @@
-import sys,re
-from sympy import *
+import sys
+from sympy import sympify,Poly,symbols,Eq,solve,nsolve
+import re
 from random import *
 from simpleeval import simple_eval
 from pathlib import Path
