@@ -1,6 +1,6 @@
 # CalculatorMax 软件说明书
 
-新的GUI正在制作中！
+新的GUI正在制作中！可以在[这里](https://github.com/6871296/calculatorMax/tree/new-gui)下载。
 ## 社区版
 
 [Rust移植](https://github.com/wumingshiali/calculatorMax-Rust)
