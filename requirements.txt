@@ -1,3 +1,4 @@
 maliang
 simpleeval
-keyboard
+six
+sympy
