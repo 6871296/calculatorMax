@@ -1,3 +1,7 @@
 maliang
 simpleeval
-keyboard
+mpmath
+six
+sympy
+pynput
+pillow
