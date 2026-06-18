@@ -1,7 +1,4 @@
 maliang
 simpleeval
-mpmath
 six
 sympy
-pynput
-pillow
