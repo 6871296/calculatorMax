@@ -11,22 +11,22 @@ from lib.betterfloat import *
 memory_value: BetterFloat = BetterFloat()
 
 
-def s_tri(bot, high) -> BetterFloat:
+def s_tri(bot:BetterFloat|ConvertibleToBetterFloat, high:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算三角形面积"""
 	return BetterFloat(bot) * BetterFloat(high) / BetterFloat(2)
 
 
-def s_rect(bot, high) -> BetterFloat:
+def s_rect(bot:BetterFloat|ConvertibleToBetterFloat, high:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算矩形面积"""
 	return BetterFloat(bot) * BetterFloat(high)
 
 
-def s_tra(bot, top, high) -> BetterFloat:
+def s_tra(bot:BetterFloat|ConvertibleToBetterFloat, top:BetterFloat|ConvertibleToBetterFloat, high:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算梯形面积"""
 	return (BetterFloat(bot) + BetterFloat(top)) * BetterFloat(high) / BetterFloat(2)
 
 
-def hsf_s_tri(a, b, c) -> BetterFloat:
+def hsf_s_tri(a:BetterFloat|ConvertibleToBetterFloat, b:BetterFloat|ConvertibleToBetterFloat, c:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""使用海伦公式计算三角形面积"""
 	a_bf = BetterFloat(a)
 	b_bf = BetterFloat(b)
@@ -35,17 +35,17 @@ def hsf_s_tri(a, b, c) -> BetterFloat:
 	return BetterFloat.sqrt(s * (s - a_bf) * (s - b_bf) * (s - c_bf))
 
 
-def pt(a, b) -> BetterFloat:
+def pt(a:BetterFloat|ConvertibleToBetterFloat, b:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""使用勾股定理计算直角三角形斜边"""
 	return BetterFloat.sqrt(BetterFloat.pow(a, 2) + BetterFloat.pow(b, 2))
 
 
-def s_circle(r) -> BetterFloat:
+def s_circle(r:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算圆形面积"""
 	return BF_PI * BetterFloat(r) * BetterFloat(r)
 
 
-def bf(x) -> BetterFloat:
+def bf(x:ConvertibleToBetterFloat) -> BetterFloat:
 	"""BetterFloat 简写构造器"""
 	return BetterFloat(x)
 
