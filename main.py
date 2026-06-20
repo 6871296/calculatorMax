@@ -1,26 +1,37 @@
 from lib.betterfloat import *
 from lib.core import *
 import lib.settings as settings
+from lib.history import History
 
 from pages.settings import main as settings_main
+from pages.history import HistoryIO
 
 from tkinter import messagebox as msgbox
 import maliang
+from types import NoneType
 
 from lib.maliang_patch import patch
 patch()
 
-history=['',None,'']
+history:list[History]=[History('',None,'')]
 title_reset_after=''
 copy_reset_after=''
+
+history_pages:list[HistoryIO]=[]
 
 def calcr(ev:str):
 	global history
 	err,res=calc(ev)
-	history=[ev,err,res]
+	history.append(History(ev,err,res))
+	for i in history_pages:
+		i.update(history)
+	show_res(err,res)
+ 
+def fill_history(ev:str,err:bool|NoneType,res:str):
+	ev_input.set(ev)
 	show_res(err,res)
 
-def show_res(err:bool,res:str):
+def show_res(err:bool|NoneType,res:str):
 	global title_reset_after
 	if title_reset_after:
 		root.after_cancel(title_reset_after)
@@ -28,6 +39,8 @@ def show_res(err:bool,res:str):
 		res_show.set(res)
 		title.style.set(fg='red')
 		copy_btn.style.set(fg=('gray','gray','gray'))
+	elif err==None:
+		pass
 	else:
 		res_show.set('='+res)
 		title.style.set(fg='green')
@@ -86,7 +99,7 @@ def copy():
 		copy_btn.set('复制')
 		copy_btn.style.set(fg=('gray','gray','gray'))
 		copy_btn.resize((50,25))
-	if history[1]!=False:
+	if not history or history[-1].err != False:
 		copy_btn.set('无法复制')
 		copy_btn.style.set(fg=('red','red','red'))
 		copy_btn.resize((80,25))
@@ -134,11 +147,10 @@ cv.place(width=1280, height=720, x=640, y=360, anchor="center")
 
 btns=[
 	#maliang.Button(cv,(10,10),(30,30),text='🏠'),
-	#maliang.Button(cv,(50,10),(30,30),text='M'),
-	#maliang.Button(cv,(90,10),(30,30),text='🕘'),
+	maliang.Button(cv,(10,10),(30,30),text='🕘',command=lambda:history_pages.append(HistoryIO(root,history,fill_history))),
 	#maliang.Button(cv,(130,10),(30,30),text='💡'),
 	#maliang.Button(cv,(170,10),(30,30),text='♟'),
-	maliang.Button(cv,(10,10),(30,30),text='⚙️',command=lambda:settings_main(root))
+	maliang.Button(cv,(50,10),(30,30),text='⚙️',command=lambda:settings_main(root))
 	#maliang.IconButton(cv,(360,10),(30,30),image=maliang.PhotoImage(file='assets/github.png').resize(20,30))
 ]
 
