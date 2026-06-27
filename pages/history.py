@@ -59,7 +59,9 @@ class HistoryIO:
 
     def update(self, history: list[History]):
         for i in self.history:
-            i.destroy()
+            i.text.destroy()
+            i.fill_btn.destroy()
+            i.remove_btn.destroy()
         self.history=[]
         y = 40
         for i in history:
@@ -106,4 +108,5 @@ if __name__ == '__main__':
             History('1=1', True, '可能不是数学算式'),
         ],
         print))
+    root.mainloop()
     root.mainloop()

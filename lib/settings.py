@@ -5,6 +5,7 @@ SETTINGS_PATH = Path(__file__).parent.parent / 'settings.json'
 
 DEFAULT_SETTINGS = {
     "ignoreClipboardOverwritingWarning": False,
+    "floatPrecision": 50,
 }
 
 

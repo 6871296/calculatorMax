@@ -2,6 +2,7 @@ from lib.betterfloat import *
 from lib.core import *
 import lib.settings as settings
 from lib.history import History
+from lib.util import ChooseBox
 
 from pages.settings import main as settings_main
 from pages.history import HistoryIO
@@ -13,6 +14,8 @@ from types import NoneType
 from lib.maliang_patch import patch
 patch()
 
+BetterFloat.set_precision(settings.get('floatPrecision',50))
+
 history:list[History]=[History('',None,'')]
 title_reset_after=''
 copy_reset_after=''
@@ -23,6 +26,8 @@ def calcr(ev:str):
 	global history
 	err,res=calc(ev)
 	history.append(History(ev,err,res))
+	# 清理已关闭的历史页面，避免访问已销毁的 Canvas
+	history_pages[:] = [i for i in history_pages if i.win.winfo_exists()]
 	for i in history_pages:
 		i.update(history)
 	show_res(err,res)
@@ -51,41 +56,6 @@ def on_enter():
 	global ev_input_focused
 	if ev_input_focused and ev_input.get()!='':
 		calcr(ev_input.get())
-  
-def clipboard_overwrite_warning():
-	res=0
-	
-	win=maliang.Toplevel(root,(200,200),title='剪贴板覆盖警告',grab=True)
-	win.topmost(True)
-	win.center()
-	cv=maliang.Canvas(win)
-	# Canvas 尺寸与窗口一致即可，避免绘制过大画布导致打开缓慢
-	cv.place(width=200, height=200, x=100, y=100, anchor="center")
-
-	maliang.Text(cv,(100,10),text='⚠️剪贴板中含有其他内容。',fontsize=14,weight='bold',anchor='n')
-	maliang.Text(cv,(100,35),text='如果现在复制，所有的内容都将丢失。\n确定复制吗？',fontsize=11,anchor='n')
-
-	def yes():
-		nonlocal res
-		res=1
-		win.destroy()
-	def ignore():
-		nonlocal res
-		res=2
-		win.destroy()
-	def no():
-		nonlocal res
-		res=3
-		win.destroy()
-
-	maliang.Button(cv,(100,70),(180,25),text='确定',fontsize=16,anchor='n',command=yes).style.set(fg='white',bg=('deepskyblue','aqua','aqua'))
-	maliang.Button(cv,(100,100),(180,25),text='确定（不再提醒）',fontsize=16,anchor='n',command=ignore)
-	maliang.Button(cv,(100,130),(180,25),text='取消',fontsize=16,anchor='n',command=no)
-	
-	win.wait_window()
-	if res==2:
-		settings.set('ignoreClipboardOverwritingWarning',True)
-	return res!=3
 
 def copy():
 	global copy_reset_after
@@ -112,7 +82,12 @@ def copy():
 				pass
 			else:
 				if not settings.get('ignoreClipboardOverwritingWarning'):
-					if not clipboard_overwrite_warning():
+					cb=ChooseBox(root,200,'⚠️剪贴板中含有其他内容。','剪贴板覆盖警告','如果现在复制，所有的内容都将丢失。\n确定复制吗？',30,btns=('确定','确定（不再提醒）','取消'))
+					cb.btns[0].style.set(fg='white',bg=('deepskyblue','aqua','aqua'))
+					ans=cb.wait_answer()
+					if ans==2:
+						settings.set('ignoreClipboardOverwritingWarning',True)
+					elif ans==3:
 						return
 			# 对话框关闭后把焦点抢回主窗口，避免 macOS 上剪贴板操作不生效
 			root.focus_force()
