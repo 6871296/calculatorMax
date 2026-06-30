@@ -26,6 +26,53 @@ def _safe_on_release(self: Canvas, event: Event, name: str):
                 event.x = 9999
 
 
+def _safe_on_motion(self: Canvas, event: Event, name: str):
+    self.trigger_config.reset()
+    for widget in reversed(self.widgets):
+        if hasattr(widget, 'feature') and not widget.disappeared:
+            flag = widget.feature.get_method(name)(event)
+            capture = getattr(widget, 'capture_events', None)
+            if capture is None:
+                if flag:
+                    event.x = 9999
+            elif capture:
+                event.x = 9999
+    self.trigger_config.update(cursor="arrow")
+
+
+def _safe_on_wheel(self: Canvas, event: Event, type_: bool | None):
+    if type_ is not None:
+        event.delta = 120 if type_ else -120
+    for widget in reversed(self.widgets):
+        if hasattr(widget, 'feature') and not widget.disappeared:
+            if widget.feature.get_method("<MouseWheel>")(event) and getattr(widget, 'capture_events', None):
+                event.x = 9999
+
+
+def _safe_on_key_press(self: Canvas, event: Event):
+    for widget in reversed(self.widgets):
+        if hasattr(widget, 'feature') and not widget.disappeared:
+            if widget.feature.get_method("<KeyPress>")(event) and getattr(widget, 'capture_events', None):
+                event.x = 9999
+
+
+def _safe_on_key_release(self: Canvas, event: Event):
+    for widget in reversed(self.widgets):
+        if hasattr(widget, 'feature') and not widget.disappeared:
+            if widget.feature.get_method("<KeyRelease>")(event) and getattr(widget, 'capture_events', None):
+                event.x = 9999
+
+
+def _safe_register_event(self: Canvas, name: str, *, add=None):
+    def handle_event(event: Event) -> None:
+        for widget in reversed(self.widgets):
+            if hasattr(widget, 'feature'):
+                if widget.feature.get_method(name)(event) and getattr(widget, 'capture_events', None):
+                    pass
+
+    return self.bind(name, handle_event, add)
+
+
 # 颜色安全补丁：macOS 上 tkinter.winfo_rgb 会返回 16 位颜色值，
 # 而 maliang 的 rgb_to_hex 期望 8 位值，导致生成类似 #00408F40BF 的非法颜色字符串。
 # 这里对颜色值做裁剪/归一化，确保最终生成的十六进制颜色始终合法。
@@ -62,6 +109,11 @@ def _safe_name_to_rgb(value, /):
 def patch():
     Canvas.on_click = _safe_on_click
     Canvas.on_release = _safe_on_release
+    Canvas.on_motion = _safe_on_motion
+    Canvas.on_wheel = _safe_on_wheel
+    Canvas.on_key_press = _safe_on_key_press
+    Canvas.on_key_release = _safe_on_key_release
+    Canvas.register_event = _safe_register_event
     convert.rgb_to_hex = _safe_rgb_to_hex
     convert.rgba_to_hex = _safe_rgba_to_hex
     convert.name_to_rgb = _safe_name_to_rgb

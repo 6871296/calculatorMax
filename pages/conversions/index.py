@@ -14,6 +14,7 @@ patch()
 
 def main(root:Tk,history:list[History]):
 	win=Toplevel(root,(300,210),title='单位换算 - CalculatorMax')
+	win.center()
 	win.focus_force()
 	win.topmost(True)
 	
@@ -31,12 +32,13 @@ def main(root:Tk,history:list[History]):
 	maliang.Text(cv,(5,156),text='换算结果仅供参考，日常生活中请依法使用计量单位。\n中国市制单位在历朝历代各有不同，此处市制单位以\n1959年国务院《关于统一计量制度的命令》为准',fontsize=12,justify='center')
  
 if __name__=='__main__':
-    root=Tk((400,240))
-    root.topmost(True)
-    cv=Canvas(root)
-    cv.place(width=400,height=240,x=0,y=0)
-    
-    maliang.Text(cv,(10,10),text='CalculatorMax convertion page\nIt should be opening on a separate window.')
-    
-    root.after_idle(lambda:main(root,[]))
-    root.mainloop()
+	root=Tk((400,240))
+	root.center()
+	root.topmost(True)
+	cv=Canvas(root)
+	cv.place(width=400,height=240,x=0,y=0)
+	
+	maliang.Text(cv,(10,10),text='CalculatorMax convertion page\nIt should be opening on a separate window.')
+	
+	root.after_idle(lambda:main(root,[]))
+	root.mainloop()

@@ -5,11 +5,11 @@ from lib.history import History
 from lib.util import ChooseBox
 
 from pages.settings import main as settings_main
+from pages.conversions.index import main as convert_main
 from pages.history import HistoryIO
 
 from tkinter import messagebox as msgbox
 import maliang
-from types import NoneType
 
 from lib.maliang_patch import patch
 patch()
@@ -32,11 +32,11 @@ def calcr(ev:str):
 		i.update(history)
 	show_res(err,res)
  
-def fill_history(ev:str,err:bool|NoneType,res:str):
+def fill_history(ev:str,err:bool|None,res:str):
 	ev_input.set(ev)
 	show_res(err,res)
 
-def show_res(err:bool|NoneType,res:str):
+def show_res(err:bool|None,res:str):
 	global title_reset_after
 	if title_reset_after:
 		root.after_cancel(title_reset_after)
@@ -85,9 +85,9 @@ def copy():
 					cb=ChooseBox(root,200,'⚠️剪贴板中含有其他内容。','剪贴板覆盖警告','如果现在复制，所有的内容都将丢失。\n确定复制吗？',30,btns=('确定','确定（不再提醒）','取消'))
 					cb.btns[0].style.set(fg='white',bg=('deepskyblue','aqua','aqua'))
 					ans=cb.wait_answer()
-					if ans==2:
+					if ans==1:
 						settings.set('ignoreClipboardOverwritingWarning',True)
-					elif ans==3:
+					elif ans==2 or ans is None:
 						return
 			# 对话框关闭后把焦点抢回主窗口，避免 macOS 上剪贴板操作不生效
 			root.focus_force()
@@ -121,11 +121,11 @@ cv=maliang.Canvas(root,auto_zoom=True,keep_ratio=None,free_anchor=True)
 cv.place(width=1280, height=720, x=640, y=360, anchor="center")
 
 btns=[
-	#maliang.Button(cv,(10,10),(30,30),text='🏠'),
 	maliang.Button(cv,(10,10),(30,30),text='🕘',command=lambda:history_pages.append(HistoryIO(root,history,fill_history))),
 	#maliang.Button(cv,(130,10),(30,30),text='💡'),
 	#maliang.Button(cv,(170,10),(30,30),text='♟'),
-	maliang.Button(cv,(50,10),(30,30),text='⚙️',command=lambda:settings_main(root))
+	maliang.Button(cv,(40,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
+	maliang.Button(cv,(90,10),(30,30),text='⚙️',command=lambda:settings_main(root))
 	#maliang.IconButton(cv,(360,10),(30,30),image=maliang.PhotoImage(file='assets/github.png').resize(20,30))
 ]
 
@@ -151,6 +151,7 @@ ev_input.bind('<FocusIn>', lambda e: ev_input_focus(True), auto_detect=False)
 ev_input.bind('<FocusOut>', lambda e: ev_input_focus(False), auto_detect=False)
 
 ev_input.bind('<Return>', lambda e: calcr(ev_input.get()), auto_detect=False)
+ev_input.bind('<KP_Enter>',lambda e: calcr(ev_input.get()),auto_detect=False)
 ev_input.bind('<Escape>',lambda e:ac(),auto_detect=False)
 
 

@@ -1,30 +1,140 @@
 import sys
-from sympy import sympify,Poly,symbols,Eq,solve,nsolve
+from sympy import sympify, Poly, symbols, Eq, solve as sympy_solve, nsolve
 import re
 from random import *
 from simpleeval import simple_eval
+from enum import Enum
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from lib.betterfloat import *
 
-# 存储内存值
-memory_value: BetterFloat = BetterFloat()
+
+class EquationType(Enum):
+    LINEAR = 0
+    POLYNOMIAL = 1
+    NUMERICAL = 2
+
+
+# sympy 保留的函数名和常量名，变量名不能与这些名称重合
+RESERVED_NAMES = {
+    'pi', 'e', 'i', 'oo', 'zoo', 'nan',
+    'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
+    'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh',
+    'exp', 'log', 'ln', 'sqrt', 'abs', 'sign',
+    'floor', 'ceiling', 'factorial', 'gamma', 'beta',
+    'erf', 'erfc', 'Ei', 'Ci', 'Si',
+}
+
+# 占位符映射：把保留名替换为不含保留名子串的占位符
+_PROTECTED_MAP = {
+    f'__MALIANG_PROTECTED_{i}__': name
+    for i, name in enumerate(sorted(RESERVED_NAMES, key=len, reverse=True))
+}
+_NAME_TO_PLACEHOLDER = {name: placeholder for placeholder, name in _PROTECTED_MAP.items()}
+
+
+def _protect_reserved(eq: str) -> str:
+    """把函数名/常量名替换为占位符，防止预处理时被拆开。
+
+    按保留名长度降序替换，避免短名破坏长名（如 sin 破坏 asin）。
+    """
+    for name in sorted(RESERVED_NAMES, key=len, reverse=True):
+        eq = eq.replace(name, _NAME_TO_PLACEHOLDER[name])
+    return eq
+
+
+def _unprotect_reserved(eq: str) -> str:
+    """恢复被保护的函数名/常量名。"""
+    for placeholder, name in _PROTECTED_MAP.items():
+        eq = eq.replace(placeholder, name)
+    return eq
+
+
+def _convert_solution_value(val):
+    """把 sympy 解的值转换为 int 或 BetterFloat；非实数解返回字符串。"""
+    # 非实数（复数）解无法转换为 int/BetterFloat，保留字符串形式
+    if not val.is_real:
+        return str(val)
+    if val.is_Integer:
+        return int(val)
+    f = float(val)
+    if f.is_integer():
+        return int(f)
+    return BetterFloat(f)
+
+
+def _insert_implicit_mul(equations: list[str], variables: list[str]) -> list[str]:
+    """自动补全隐含乘号。
+
+    处理规则：
+    - 数字与变量之间：2x -> 2*x
+    - 变量与变量之间：xy -> x*y
+    - 数字与左括号之间：2(x+1) -> 2*(x+1)
+    - 右括号与数字/变量/左括号之间：(x+1)2 -> (x+1)*2, (x+1)(x+2) -> (x+1)*(x+2)
+    - 变量与左括号之间：x(x+1) -> x*(x+1)
+    - 数字/变量/右括号与函数名/常量名之间：2sin(x) -> 2*sin(x), xsin(x) -> x*sin(x)
+
+    会先保护 sympy 的函数名/常量名，避免 asin 被拆成 a*sin。
+    """
+    if not variables:
+        return list(equations)
+
+    # 按变量名长度降序，避免短变量名错误匹配长变量名的一部分
+    sorted_vars = sorted(variables, key=len, reverse=True)
+    var_pattern = '|'.join(re.escape(v) for v in sorted_vars)
+    placeholder_pattern = '|'.join(re.escape(p) for p in _PROTECTED_MAP.keys())
+
+    # 数字（含小数）
+    num = r'\d+(?:\.\d+)?'
+
+    result = []
+    for eq in equations:
+        # 保护函数名/常量名
+        eq = _protect_reserved(eq)
+
+        # 数字 + 变量名
+        eq = re.sub(rf'({num})({var_pattern})', r'\1*\2', eq)
+        # 变量名 + 变量名（循环处理连续多个变量，如 xyz -> x*y*z）
+        prev = None
+        while prev != eq:
+            prev = eq
+            eq = re.sub(rf'({var_pattern})({var_pattern})', r'\1*\2', eq)
+        # 数字 + 左括号
+        eq = re.sub(rf'({num})(\()', r'\1*\2', eq)
+        # 右括号 + 数字
+        eq = re.sub(rf'(\))({num})', r'\1*\2', eq)
+        # 变量名 + 左括号
+        eq = re.sub(rf'({var_pattern})(\()', r'\1*\2', eq)
+        # 右括号 + 变量名
+        eq = re.sub(rf'(\))({var_pattern})', r'\1*\2', eq)
+        # 右括号 + 左括号
+        eq = re.sub(rf'(\))(\()', r'\1*\2', eq)
+
+        # 数字/变量/右括号与函数/常量占位符之间补 *
+        eq = re.sub(rf'({num})({placeholder_pattern})', r'\1*\2', eq)
+        eq = re.sub(rf'({var_pattern})({placeholder_pattern})', r'\1*\2', eq)
+        eq = re.sub(rf'(\))({placeholder_pattern})', r'\1*\2', eq)
+        eq = re.sub(rf'({placeholder_pattern})({num})', r'\1*\2', eq)
+
+        # 恢复函数名/常量名
+        eq = _unprotect_reserved(eq)
+
+        result.append(eq)
+
+    return result
 
 
 def s_tri(bot:BetterFloat|ConvertibleToBetterFloat, high:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算三角形面积"""
 	return BetterFloat(bot) * BetterFloat(high) / BetterFloat(2)
 
-
 def s_rect(bot:BetterFloat|ConvertibleToBetterFloat, high:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算矩形面积"""
 	return BetterFloat(bot) * BetterFloat(high)
 
-
 def s_tra(bot:BetterFloat|ConvertibleToBetterFloat, top:BetterFloat|ConvertibleToBetterFloat, high:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算梯形面积"""
 	return (BetterFloat(bot) + BetterFloat(top)) * BetterFloat(high) / BetterFloat(2)
-
 
 def hsf_s_tri(a:BetterFloat|ConvertibleToBetterFloat, b:BetterFloat|ConvertibleToBetterFloat, c:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""使用海伦公式计算三角形面积"""
@@ -34,18 +144,15 @@ def hsf_s_tri(a:BetterFloat|ConvertibleToBetterFloat, b:BetterFloat|ConvertibleT
 	s = (a_bf + b_bf + c_bf) / BetterFloat(2)
 	return BetterFloat.sqrt(s * (s - a_bf) * (s - b_bf) * (s - c_bf))
 
-
 def pt(a:BetterFloat|ConvertibleToBetterFloat, b:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""使用勾股定理计算直角三角形斜边"""
 	return BetterFloat.sqrt(BetterFloat.pow(a, 2) + BetterFloat.pow(b, 2))
-
 
 def s_circle(r:BetterFloat|ConvertibleToBetterFloat) -> BetterFloat:
 	"""计算圆形面积"""
 	return BF_PI * BetterFloat(r) * BetterFloat(r)
 
-
-def bf(x:ConvertibleToBetterFloat) -> BetterFloat:
+def bf(x:ConvertibleToBetterFloat=0) -> BetterFloat:
 	"""BetterFloat 简写构造器"""
 	return BetterFloat(x)
 
@@ -77,35 +184,38 @@ def convert_expr_to_betterfloat(expr: str) -> str:
 	result = re.sub(number_pattern, replace_number, expr)
 	return result
 
+
 class CalculatorMaxError(Exception):
+	'''Error generated in CalculatorMax calculating core.'''
 	def __init__(self,info:str|None=None):
 		self.info=info
 		super().__init__(info)
 	def __str__(self):
 		return self.info
+
 class CalculatorMaxEvalError(CalculatorMaxError):
-    pass
+	pass
 class CalculatorMaxSolveError(CalculatorMaxError):
-    pass
+	pass
+
 
 def calc(ev:str):
 	"""[CalculatorMax]计算表达式"""
-	global memory_value
 	
 	f = '未知错误'
 	err = True
 	
 	try:
-		ev = ev.replace("m", "m()")
-		ev = ev.replace("pi", "pi()")
-		ev = ev.replace("e", "e()")
-		
 		# 将数字字面量转换为 BetterFloat
-		ev_processed = convert_expr_to_betterfloat(ev)
+		ev_processed = convert_expr_to_betterfloat(ev).replace('^','**').replace()
 		
-		f = str(simple_eval(ev_processed, functions={
-			"bf": bf,
-			"m": lambda: memory_value,
+		f = str(simple_eval(ev_processed, names={
+			"pi": BF_PI,
+			"pi_hq":BF_PI_HQ,
+			"e_hq":BF_E_HQ,
+			"e": BF_E,
+		}, functions={
+			"bf":bf,
 			"pi": lambda: BF_PI,
 			"e": lambda: BF_E,
 			"pow": lambda a, b: BetterFloat.pow(a, b),
@@ -190,12 +300,6 @@ def calc(ev:str):
 		err = False
 	return err,f
 
-def api_mem(value:int|float|BetterFloat):
-	"""[CalculatorMax]设置内存值"""
-	global memory_value
-	memory_value = BetterFloat(value)
-
-
 def validate_equation_input(equations, variables):
 	"""
 	验证输入是否是有效的方程，并检查是否可以用程序求解。
@@ -227,6 +331,8 @@ def validate_equation_input(equations, variables):
 			return False, False, f"变量名必须是字符串: {v}"
 		if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', v):
 			return False, False, f"非法的变量名: {v}"
+		if v.lower() in RESERVED_NAMES:
+			return False, False, f"变量名不能与函数名或常量名重合: {v}"
 		var_names.append(v)
 	
 	return True, True, "验证通过"
@@ -277,14 +383,12 @@ def is_polynomial_system(exprs, vars):
 
 
 def solve_linear_system(equations, variables):
-	"""求解线性方程组"""
+	"""求解线性方程组，返回 (success, equation_type, solution_dict)。"""
 	try:
-		# 创建符号
 		var_symbols = symbols(variables)
 		if not isinstance(var_symbols, (list, tuple)):
 			var_symbols = [var_symbols]
-		
-		# 构建 sympy 等式
+
 		eqs = []
 		for eq_str in equations:
 			if isinstance(eq_str, str) and '=' in eq_str:
@@ -292,40 +396,31 @@ def solve_linear_system(equations, variables):
 				eqs.append(Eq(sympify(left), sympify(right)))
 			else:
 				eqs.append(Eq(sympify(eq_str), 0))
-		
-		# 使用线性代数方法求解
-		solution = solve(eqs, var_symbols, dict=True)
-		
+
+		solution = sympy_solve(eqs, var_symbols, dict=True)
+
 		if not solution:
-			return {"success": True, "type": "线性方程组", "solution": "无解"}
-		
-		# 格式化解
-		result = {}
-		for sol in solution:
-			if isinstance(sol, dict):
-				for var, val in sol.items():
-					result[str(var)] = str(val)
-			else:
-				result[str(var_symbols[0])] = str(sol)
-		
-		return {
-			"success": True,
-			"type": "线性方程组",
-			"solution": result,
-			"method": "精确解（线性代数）"
-		}
+			return True, EquationType.LINEAR, None
+
+		# 取第一个解（线性方程组通常只有一个解）
+		sol = solution[0] if isinstance(solution, list) else solution
+		result = {str(var): _convert_solution_value(val) for var, val in sol.items()}
+
+		return True, EquationType.LINEAR, result
 	except Exception as e:
-		return {"success": False, "error": f"求解失败: {str(e)}"}
+		return False, EquationType.LINEAR, {"error": str(e)}
 
 
 def solve_polynomial_system(equations, variables):
-	"""求解多项式方程组"""
+	"""求解多项式方程组，返回 (success, equation_type, solution_dict)。
+
+	当多项式方程组存在多组解时，只返回第一组解。
+	"""
 	try:
 		var_symbols = symbols(variables)
 		if not isinstance(var_symbols, (list, tuple)):
 			var_symbols = [var_symbols]
-		
-		# 构建 sympy 等式
+
 		eqs = []
 		for eq_str in equations:
 			if isinstance(eq_str, str) and '=' in eq_str:
@@ -333,40 +428,28 @@ def solve_polynomial_system(equations, variables):
 				eqs.append(Eq(sympify(left), sympify(right)))
 			else:
 				eqs.append(Eq(sympify(eq_str), 0))
-		
-		# 求解
-		solution = solve(eqs, var_symbols, dict=True)
-		
+
+		solution = sympy_solve(eqs, var_symbols, dict=True)
+
 		if not solution:
-			return {"success": True, "type": "多项式方程组", "solution": "无解"}
-		
-		# 格式化所有解
-		solutions_list = []
-		for sol in solution:
-			sol_dict = {}
-			for var, val in sol.items():
-				sol_dict[str(var)] = str(val)
-			solutions_list.append(sol_dict)
-		
-		return {
-			"success": True,
-			"type": "多项式方程组",
-			"solutions": solutions_list,
-			"solution_count": len(solutions_list),
-			"method": "符号计算（Grobner基/结式）"
-		}
+			return True, EquationType.POLYNOMIAL, None
+
+		# 取第一个解返回
+		sol = solution[0] if isinstance(solution, list) else solution
+		result = {str(var): _convert_solution_value(val) for var, val in sol.items()}
+
+		return True, EquationType.POLYNOMIAL, result
 	except Exception as e:
-		return {"success": False, "error": f"求解失败: {str(e)}"}
+		return False, EquationType.POLYNOMIAL, {"error": str(e)}
 
 
 def solve_numerical_system(equations, variables, initial_guess=None):
-	"""使用数值方法求解非线性方程组"""
+	"""使用数值方法求解非线性方程组，返回 (success, equation_type, solution_dict)。"""
 	try:
 		var_symbols = symbols(variables)
 		if not isinstance(var_symbols, (list, tuple)):
 			var_symbols = [var_symbols]
-		
-		# 构建 sympy 等式（转换为 f(x)=0 形式）
+
 		funcs = []
 		for eq_str in equations:
 			if isinstance(eq_str, str) and '=' in eq_str:
@@ -374,32 +457,26 @@ def solve_numerical_system(equations, variables, initial_guess=None):
 				funcs.append(sympify(f"({left}) - ({right})"))
 			else:
 				funcs.append(sympify(eq_str))
-		
-		# 使用 nsolve 进行数值求解
+
 		if initial_guess is None:
 			initial_guess = [0.0] * len(variables)
-		
+
 		solution = nsolve(funcs, var_symbols, initial_guess, tol=1e-14, maxsteps=100)
-		
-		# 格式化解
+
 		result = {}
 		for i, var in enumerate(variables):
-			result[var] = str(solution[i])
-		
-		return {
-			"success": True,
-			"type": "非线性方程组",
-			"solution": result,
-			"method": "数值求解（牛顿迭代法）",#这是数值近似解，精度约为 1e-14
-		}
+			val = solution[i]
+			result[var] = _convert_solution_value(val)
+
+		return True, EquationType.NUMERICAL, result
 	except Exception as e:
-		return {"success": False, "error": f"数值求解失败: {str(e)}"}
+		return False, EquationType.NUMERICAL, {"error": str(e)}
 
 
-def api_solve(equations:Iterable[str],variables:Iterable[str],initial_guess):
+def solve_equations(equations: tuple[str], variables: tuple[str], initial_guess: tuple[int] | None = None):
 	"""
 	[CalculatorMax]求解方程（组）
-	
+
 	请求体格式：
 	{
 		"equations": ["2*x + 3*y = 7", "x - y = 1"],  // 方程列表
@@ -415,20 +492,21 @@ def api_solve(equations:Iterable[str],variables:Iterable[str],initial_guess):
 	
 	# 1. 验证输入
 	is_valid, can_solve, message = validate_equation_input(equations, variables)
-	
+
 	if not is_valid:
 		raise CalculatorMaxSolveError(message)
-	
+
+	# 2. 自动补全隐含乘号（如 2x -> 2*x，xy -> x*y）
+	equations = _insert_implicit_mul(list(equations), list(variables))
+
 	try:
-		# 2. 解析方程为 sympy 表达式以判断类型
+		# 3. 解析方程为 sympy 表达式以判断类型
 		var_symbols = symbols(variables)
 		if not isinstance(var_symbols, (list, tuple)):
 			var_symbols = [var_symbols]
 		
 		exprs = []
 		for eq_str in equations:
-			if not isinstance(eq_str, str):
-				raise CalculatorMaxSolveError('参数填写不规范')
 			
 			# 转换为表达式
 			if '=' in eq_str:
@@ -438,7 +516,7 @@ def api_solve(equations:Iterable[str],variables:Iterable[str],initial_guess):
 				expr = sympify(eq_str)
 			exprs.append(expr)
 		
-		# 3. 判断方程类型并求解
+		# 4. 判断方程类型并求解
 		if is_linear_system(exprs, var_symbols):
 			result = solve_linear_system(equations, variables)
 		elif is_polynomial_system(exprs, var_symbols):
@@ -450,7 +528,8 @@ def api_solve(equations:Iterable[str],variables:Iterable[str],initial_guess):
 			else:
 				# 默认尝试 [0, 0, ...] 作为初始猜测
 				result = solve_numerical_system(equations, variables, [0.0] * len(variables))
-		
+
+		# result 已经是 (success, equation_type, solution) 格式
 		return result
 		
 	except Exception as e:
