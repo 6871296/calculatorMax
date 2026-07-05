@@ -94,6 +94,7 @@ class HistoryIO:
 if __name__ == '__main__':
     root = Tk((400, 240))
     root.topmost(True)
+    root.center()
 
     cv = Canvas(root)
     cv.place(width=400, height=240, x=0, y=0)

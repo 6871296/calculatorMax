@@ -25,7 +25,7 @@ class BetterFloat:
 	
 	# Context for decimal operations
 	_precision: int = 50  # Default precision for operations
-	_max_precision: int = 10000  # Maximum allowed precision to prevent memory issues
+	_max_precision: int = 16384  # Maximum allowed precision to prevent memory issues. If you're using a laptop, you'd better not to change this any bigger. 
 	_max_exp: int = 50000  # Maximum allowed exponent (10^50000 is a huge number)
 	
 	def __init__(self, value: ConvertibleToBetterFloat = 0, *, exp: Optional[int] = None):
@@ -554,7 +554,7 @@ class BetterFloat:
 		'''Set the precision for division operations.'''
 		if precision > cls._max_precision:
 			raise OverflowError(f"精度不能超过 {cls._max_precision} 位")
-		cls._precision = max(1, precision)
+		cls._precision = max(10, precision)
 	
 	@staticmethod
 	def _check_exp(exp: int, context: str = "") -> None:

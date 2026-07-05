@@ -9,6 +9,7 @@ from pages.conversions.index import main as convert_main
 from pages.history import HistoryIO
 
 from tkinter import messagebox as msgbox
+import pyperclip as clip
 import maliang
 
 from lib.maliang_patch import patch
@@ -16,9 +17,11 @@ patch()
 
 BetterFloat.set_precision(settings.get('floatPrecision',50))
 
-history:list[History]=[History('',None,'')]
+history:list[History]=[]
 title_reset_after=''
 copy_reset_after=''
+
+last_res=''
 
 history_pages:list[HistoryIO]=[]
 
@@ -37,17 +40,27 @@ def fill_history(ev:str,err:bool|None,res:str):
 	show_res(err,res)
 
 def show_res(err:bool|None,res:str):
-	global title_reset_after
+	global title_reset_after,last_res
+	last_res=res
 	if title_reset_after:
 		root.after_cancel(title_reset_after)
 	if err:
+		res_show.moveto(200,205)
+		eq_sign.set('')
 		res_show.set(res)
 		title.style.set(fg='red')
 		copy_btn.style.set(fg=('gray','gray','gray'))
 	elif err==None:
 		pass
 	else:
-		res_show.set('='+res)
+		if len(res)<=10:
+			res_show.moveto(200,205)
+			eq_sign.set('')
+			res_show.set('='+res)
+		else:
+			res_show.moveto(200,215)
+			eq_sign.set('=')
+			res_show.set(res)
 		title.style.set(fg='green')
 		copy_btn.style.set(fg=('black','black','black'))
 	title_reset_after=root.after(2000, lambda: title.style.set(fg='black'))
@@ -77,7 +90,7 @@ def copy():
 	else:
 		try:
 			try:
-				root.clipboard_get()
+				clip.paste()
 			except Exception:
 				pass
 			else:
@@ -89,11 +102,7 @@ def copy():
 						settings.set('ignoreClipboardOverwritingWarning',True)
 					elif ans==2 or ans is None:
 						return
-			# 对话框关闭后把焦点抢回主窗口，避免 macOS 上剪贴板操作不生效
-			root.focus_force()
-			root.clipboard_clear()
-			root.clipboard_append(res_show.get())
-			root.update()
+			clip.copy(last_res)
 			copy_btn.set('复制成功')
 			copy_btn.style.set(fg=('green','green','green'))
 			copy_btn.resize((80,25))
@@ -112,35 +121,41 @@ def ac():
 	ev_input.set('')
 
 
-root=maliang.Tk(size=(400,240),title='CalculatorMax')
+root=maliang.Tk(size=(400,250),title='CalculatorMax')
 root.center()
 root.focus_force()
 #root.topmost(True)
 
 cv=maliang.Canvas(root,auto_zoom=True,keep_ratio=None,free_anchor=True)
-cv.place(width=1280, height=720, x=640, y=360, anchor="center")
+cv.place(width=400, height=240,x=0,y=0)
 
-btns=[
-	maliang.Button(cv,(10,10),(30,30),text='🕘',command=lambda:history_pages.append(HistoryIO(root,history,fill_history))),
-	#maliang.Button(cv,(130,10),(30,30),text='💡'),
-	#maliang.Button(cv,(170,10),(30,30),text='♟'),
-	maliang.Button(cv,(40,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
-	maliang.Button(cv,(90,10),(30,30),text='⚙️',command=lambda:settings_main(root))
-	#maliang.IconButton(cv,(360,10),(30,30),image=maliang.PhotoImage(file='assets/github.png').resize(20,30))
+cv_btn=maliang.Canvas(cv)
+cv_btn.place(width=400,height=50,x=0,y=0)
+#cv_btn.create_rectangle(0,0,400,50,fill='deepskyblue',width=0)
+
+btns:list[maliang.Button]=[
+	maliang.Button(cv_btn,(10,10),(30,30),text='🕘',command=lambda:history_pages.append(HistoryIO(root,history,fill_history))),
+	#maliang.Button(cv_btn,(130,10),(30,30),text='💡'),
+	#maliang.Button(cv_btn,(170,10),(30,30),text='♟'),
+	maliang.Button(cv_btn,(50,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
+	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',command=lambda:settings_main(root)),
+	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file='assets/github.png').resize(20,24))
 ]
+
 
 title=maliang.Text(cv,(200,70),text='CalculatorMax',fontsize=24,anchor='center',auto_update=True)
 maliang.Text(cv,(200,100),text='计算一切结果',fontsize=16,anchor='center')
 
 ev_input=maliang.InputBox(cv,(140,140),(200,30),placeholder='请输入算式',anchor='center')
 ev_input_focused=False
-maliang.Button(cv,(310,140),(100,30),text='计算',anchor='center',command=lambda: calcr(ev_input.get())).style.set(fg='white',bg=('deepskyblue','aqua','cyan'))
-
-
-res_show=maliang.Text(cv,(200,205),text='',anchor='n')
+maliang.Button(cv,(310,140),(100,30),text='计算',anchor='center',command=lambda: calcr(ev_input.get())).style.set(fg='white',bg=('deepskyblue','aqua','gray'))
 
 ac_btn=maliang.Button(cv,(190,180),(50,25),text='清空',fontsize=16,command=ac,anchor='e')
 copy_btn=maliang.Button(cv,(210,180),(50,25),text='复制',fontsize=16,command=copy,anchor='w')
+
+eq_sign=maliang.Text(cv,(200,195),anchor='n',text='',fontsize=16,justify='center')
+res_show=maliang.Text(cv,(200,215),text='',anchor='n')
+
 copy_btn.style.set(fg=('gray','gray','gray'))
 
 def ev_input_focus(status:bool):

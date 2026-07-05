@@ -1,4 +1,4 @@
 {
-	"ignoreClipboardOverwritingWarning": false,
-	"floatPrecision":50
+	"ignoreClipboardOverwritingWarning": true,
+	"floatPrecision": 50
 }

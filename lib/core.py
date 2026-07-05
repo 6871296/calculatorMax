@@ -207,7 +207,7 @@ def calc(ev:str):
 	
 	try:
 		# 将数字字面量转换为 BetterFloat
-		ev_processed = convert_expr_to_betterfloat(ev).replace('^','**').replace()
+		ev_processed = convert_expr_to_betterfloat(ev).replace('^','**')
 		
 		f = str(simple_eval(ev_processed, names={
 			"pi": BF_PI,
