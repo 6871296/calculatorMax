@@ -130,18 +130,41 @@ cv=maliang.Canvas(root,auto_zoom=True,keep_ratio=None,free_anchor=True)
 cv.place(width=400, height=240,x=0,y=0)
 
 cv_btn=maliang.Canvas(cv)
-cv_btn.place(width=400,height=50,x=0,y=0)
+cv_btn.place(width=400,height=61,x=0,y=0)
 #cv_btn.create_rectangle(0,0,400,50,fill='deepskyblue',width=0)
 
 btns:list[maliang.Button]=[
-	maliang.Button(cv_btn,(10,10),(30,30),text='🕘',command=lambda:history_pages.append(HistoryIO(root,history,fill_history))),
+	maliang.Button(cv_btn,(10,10),(30,30),text='🕘',justify='center',command=lambda:history_pages.append(HistoryIO(root,history,fill_history))),
 	#maliang.Button(cv_btn,(130,10),(30,30),text='💡'),
 	#maliang.Button(cv_btn,(170,10),(30,30),text='♟'),
 	maliang.Button(cv_btn,(50,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
-	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',command=lambda:settings_main(root)),
+	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',justify='center',command=lambda:settings_main(root)),
 	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file='assets/github.png').resize(20,24))
 ]
 
+btn_labels:list[maliang.Label]=[
+	maliang.Label(cv_btn,(25,50),(50,20),anchor='center',text='历史记录',fontsize=12,capture_events=False),
+	maliang.Label(cv_btn,(65,50),(30,20),anchor='center',text='换算',fontsize=12,capture_events=False),
+	maliang.Label(cv_btn,(105,50),(30,20),anchor='center',text='设置',fontsize=12,capture_events=False),
+	maliang.Label(cv_btn,(375,50),(50,20),anchor='center',text='（无效果）',fontsize=12,capture_events=False),
+]
+
+# 按住 Option（Alt）键显示全部标签，松开时隐藏
+def _show_btn_labels(_=None):
+	for label in btn_labels:
+		label.forget(False)
+
+def _hide_btn_labels(_=None):
+	for label in btn_labels:
+		label.forget(True)
+  
+# 默认隐藏所有标签
+_hide_btn_labels()
+ 
+for _key in ('<KeyPress-Alt_L>', '<KeyPress-Alt_R>'):
+	cv.bind_all(_key, _show_btn_labels)
+for _key in ('<KeyRelease-Alt_L>', '<KeyRelease-Alt_R>'):
+	cv.bind_all(_key, _hide_btn_labels)
 
 title=maliang.Text(cv,(200,70),text='CalculatorMax',fontsize=24,anchor='center',auto_update=True)
 maliang.Text(cv,(200,100),text='计算一切结果',fontsize=16,anchor='center')
