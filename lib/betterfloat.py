@@ -2,11 +2,22 @@ from __future__ import annotations
 from collections.abc import *
 import math
 from typing import *
+if TYPE_CHECKING:
+	from _typeshed import ConvertibleToFloat,ConvertibleToInt
+else:
+	# Copied from typeshed fallback for VScode
+	import sys
+	ReadableBuffer: TypeAlias = Buffer
+	if sys.version_info >= (3, 14):
+		ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex
+	else:
+		class SupportsTrunc(Protocol):
+			def __trunc__(self) -> int: ...
+		ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex | SupportsTrunc
+	ConvertibleToFloat: TypeAlias = str | ReadableBuffer | SupportsFloat | SupportsIndex
 from sys import set_int_max_str_digits as int2strdigits
 int2strdigits(5300)
 
-# Type aliases for compatibility
-ConvertibleToBetterFloat = Union[str, bytes, bytearray, memoryview, int, float]  # Simplified for Python 3.8
 
 class BetterFloat:
 	'''
@@ -74,6 +85,8 @@ class BetterFloat:
 			self._from_decimal_str(s)
 		elif isinstance(value, str):
 			self._from_decimal_str(value.strip())
+		elif hasattr(value,'__int__'):
+			self.__init__(int(value))
 		elif hasattr(value, '__float__'):
 			self.__init__(float(value))
 		else:
@@ -1042,6 +1055,9 @@ class BetterFloat:
 def bf(value: ConvertibleToBetterFloat) -> BetterFloat:
 	'''Shorthand for creating BetterFloat.'''
 	return BetterFloat(value)
+
+# Type aliases for compatibility
+ConvertibleToBetterFloat = Union[BetterFloat,str, bytes, bytearray, memoryview, int, float,ConvertibleToFloat,ConvertibleToInt]  # Simplified for Python 3.8
 
 # Constants (as BetterFloat instances for consistency, though they're irrational)
 

@@ -1,5 +1,4 @@
 from maliang import *
-from typing import Union
 
 import sys
 from pathlib import Path
