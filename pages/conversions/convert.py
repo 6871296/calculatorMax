@@ -67,7 +67,7 @@ UNITS_LENGTH={
 def _convert(value:BetterFloat,units:dict[str,dict[str,BetterFloat]],unit_from:tuple[str,str],unit_to:tuple[str,str])->BetterFloat:
 	return value*units[unit_from[0]][unit_from[1]]/units[unit_to[0]][unit_to[1]]
 	
-def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='长度单位换算',_convert:Callable[[BetterFloat,dict[str,dict[str,BetterFloat]],tuple[str,str],tuple[str,str],BetterFloat]]=_convert):
+def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='长度单位换算',_convert:Callable[[BetterFloat,dict[str,dict[str,BetterFloat]],tuple[str,str],tuple[str,str]],BetterFloat]=_convert):
 	win=Toplevel(root,(420,170),title=f'{title} - CalculatorMax')
 	win.center()
 	win.focus_force()
