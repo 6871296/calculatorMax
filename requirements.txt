@@ -4,3 +4,4 @@ six
 sympy
 pyperclip
 pillow
+forex-python

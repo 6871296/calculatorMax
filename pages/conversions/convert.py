@@ -13,6 +13,7 @@ from lib.maliang_patch import patch
 
 from maliang.core.virtual import Feature
 from tkinter import messagebox as msgbox
+from typing import Callable
 
 import pyperclip as clip
 
@@ -66,7 +67,7 @@ UNITS_LENGTH={
 def _convert(value:BetterFloat,units:dict[str,dict[str,BetterFloat]],unit_from:tuple[str,str],unit_to:tuple[str,str])->BetterFloat:
 	return value*units[unit_from[0]][unit_from[1]]/units[unit_to[0]][unit_to[1]]
 	
-def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='长度单位换算'):
+def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='长度单位换算',_convert:Callable[[BetterFloat,dict[str,dict[str,BetterFloat]],tuple[str,str],tuple[str,str],BetterFloat]]=_convert):
 	win=Toplevel(root,(420,170),title=f'{title} - CalculatorMax')
 	win.center()
 	win.focus_force()
@@ -197,10 +198,8 @@ def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='长�
 	unit2_input.feature = Feature(unit2_input)
 	unit2_chooser=Button(cv,(400,100),(210,30),anchor='ne',justify='center',fontsize=16,text='未选择',command=setunit2)
  
-	res_too_big=Text(cv,(200,132),text='结果过大，请复制后查看',fontsize=10,justify='center',anchor='n')
-	res_too_big.set('')
+	res_too_big=Text(cv,(200,132),text='',fontsize=10,justify='center',anchor='n')
 	Text(cv,(200,140),text='换算结果仅供参考\n带*的单位表示换算值可能不精确',fontsize=10,justify='center',anchor='n')
-	
 	
 
 	# 输入时自动重新换算，也支持回车手动触发（绑定到输入框比绑定 Canvas 更可靠）

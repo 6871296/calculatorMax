@@ -6,6 +6,7 @@ import maliang
 from maliang import *
 
 from pages.conversions.convert import main as convert_main
+from pages.conversions.money import main as money_convert_main
 
 from lib.betterfloat import bf,BetterFloat
 from lib.maliang_patch import patch
@@ -113,6 +114,43 @@ UNITS_VOLUME={
 		'🇬🇧立方码（yd³）':bf('0.764555')
 	}
 }
+UNITS_WEIGHT={
+	'🇺🇳公制':{
+	   #'🇺🇳纳克（ng）':bf(bf('0.001')/1000/1000),
+	   '🇺🇳微克（μg）': bf('0.001')/1000,
+	   '🇺🇳毫克（mg）': bf('0.001'),
+	   #'🇺🇳厘克（cg）': bf('0.01'),
+	   #'🇺🇳分克（dg）': bf('0.1'),
+	   '🇺🇳克（g）': bf(1),
+	   '🇺🇳千克（kg）': bf(1000),
+	   '🇺🇳吨（t）':bf(1000000)
+	},
+	'🇨🇳市制':{
+		'🇨🇳市丝':bf('0.0005'),
+		'🇨🇳市毫':bf('0.005'),
+		'🇨🇳市厘':bf('0.05'),
+		'🇨🇳市分':bf('0.5'),
+		'🇨🇳市钱':bf(5),
+		'🇨🇳市两':bf(50),
+		'🇨🇳市斤':bf(500),
+		'🇨🇳市担':bf(5000),
+		'🇨🇳台斤':bf(600),
+		'🇨🇳台两':bf('37.5'),
+		'🇭🇰司马斤':bf('604.79'),
+		'🇭🇰司马两':bf('37.799')
+	},
+	'🇬🇧英制':{
+		'🇬🇧格令（gr）':bf('0.0648'),
+		'🇬🇧打兰（dr/dram）':bf('1.7718452'),
+		'🇬🇧常衡盎司（oz）':bf('28.34952312'),
+		'🇬🇧磅（lb）':bf('453.5927'),
+		'🇬🇧英石（st）':bf('6350.2978'),
+		'🇬🇧英担（cwt）':bf('50802.3824'),
+		'🇬🇧短吨（st）':bf('907185.4'),
+		'🇬🇧长吨（lt）':bf('1016047.648')
+	}
+}
+
 
 def main(root:Tk):
 	win=Toplevel(root,(300,210),title='单位换算 - CalculatorMax')
@@ -127,8 +165,8 @@ def main(root:Tk):
 	
 	[
 		Button(cv,(20,40),(120,30),text='📏长度',command=lambda:convert_main(win,UNITS_LENGTH,'长度换算')),          Button(cv,(280,40),(120,30),anchor='ne',text='◼️面积',command=lambda:convert_main(win,UNITS_AREA,'面积单位换算')),
-  		Button(cv,(20,80),(120,30),text='📦体积和容积',command=lambda:convert_main(win,UNITS_VOLUME,'体积和容积换算')),Button(cv,(280,80),(120,30),anchor='ne',text='⚖重量').disable(True),
-		Button(cv,(20,120),(120,30),text='💰货币').disable(True)                                                   ,Button(cv,(280,120),(120,30),anchor='ne',text='🕒时间').disable(True)
+  		Button(cv,(20,80),(120,30),text='📦体积和容积',command=lambda:convert_main(win,UNITS_VOLUME,'体积和容积换算')),Button(cv,(280,80),(120,30),anchor='ne',text='⚖重量',command=lambda:convert_main(win,UNITS_WEIGHT,'重量换算')),
+		Button(cv,(20,120),(120,30),text='💰货币',command=lambda:money_convert_main(win)).disable(True)                                                   ,Button(cv,(280,120),(120,30),anchor='ne',text='🕒时间').disable(True)
 	]
 	
 	maliang.Text(cv,(5,156),text='换算结果仅供参考，日常生活中请依法使用计量单位。\n中国市制单位在历朝历代各有不同，此处市制单位以\n1959年国务院《关于统一计量制度的命令》为准',fontsize=12,justify='center')
