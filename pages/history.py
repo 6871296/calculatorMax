@@ -78,7 +78,7 @@ class HistoryIO:
     ):
         self.fill_history = fill_history
         self.history:list[VisionHistory]=[]
-        self.win = Toplevel(root, (300, 150), title='历史记录 - CalculatorMax')
+        self.win = Toplevel(root, (300, 40+len(history)*30), title='历史记录 - CalculatorMax')
         self.win.center()
         self.win.topmost(True)
         self.win.focus_force()
