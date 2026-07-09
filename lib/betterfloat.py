@@ -1,3 +1,6 @@
+# 我正试图在另一个仓库（https://github.com/6871296/betterfloat.git)
+# 中开发BetterFloat，并把它打包成PyPI包，这个文件随时可能会被删除。
+
 from __future__ import annotations
 from collections.abc import *
 import math
@@ -7,14 +10,13 @@ if TYPE_CHECKING:
 else:
 	# Copied from typeshed fallback for VScode
 	import sys
-	ReadableBuffer: TypeAlias = Buffer
 	if sys.version_info >= (3, 14):
-		ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex
+		ConvertibleToInt: TypeAlias = str | Buffer | SupportsInt | SupportsIndex
 	else:
 		class SupportsTrunc(Protocol):
 			def __trunc__(self) -> int: ...
-		ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex | SupportsTrunc
-	ConvertibleToFloat: TypeAlias = str | ReadableBuffer | SupportsFloat | SupportsIndex
+		ConvertibleToInt: TypeAlias = str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc
+	ConvertibleToFloat: TypeAlias = str | Buffer | SupportsFloat | SupportsIndex
 from sys import set_int_max_str_digits as int2strdigits
 int2strdigits(5300)
 
@@ -25,18 +27,20 @@ class BetterFloat:
 		It can add, minus, etc., just like int and float, but 1.1+2.2=3.3, not 3.3000000000000003.
 		
 		Internal representation:
-		- _value: int - the integer value without decimal point (e.g., 123 for 1.23 or 12.3)
+		- _value: int - the integer value without decimal point (e.g., 123 for 1.23, 12.3, 123 or 0.123)
 		- _exp: int - the exponent (10**exp is the divisor), i.e., number of decimal places
 		
-		Example: 1.23 -> _value=123, _exp=2
-				 12.3 -> _value=123, _exp=1
+		Examples:
+		- 1.23 -> _value=123, _exp=2
+		- 12.3 -> _value=123, _exp=1
+
 	'''
-	
-	__slots__ = ('_value', '_exp', '_is_nan', '_is_inf', '_sign')
+	__slots__ = ('_value', '_exp', '_is_nan', '_is_inf')
 	
 	# Context for decimal operations
 	_precision: int = 50  # Default precision for operations
-	_max_precision: int = 16384  # Maximum allowed precision to prevent memory issues. If you're using a laptop, you'd better not to change this any bigger. 
+	_max_precision: int = 16384  # Maximum allowed precision to prevent memory issues.
+                                 #If you're using a laptop, you'd better not to change this any bigger. 
 	_max_exp: int = 50000  # Maximum allowed exponent (10^50000 is a huge number)
 	
 	def __init__(self, value: ConvertibleToBetterFloat = 0, *, exp: Optional[int] = None):
@@ -47,7 +51,7 @@ class BetterFloat:
 		# Initialize special attributes first
 		self._is_nan = False
 		self._is_inf = False
-		self._sign = 0
+		self._value = 0
 		
 		if exp is not None:
 			# Direct construction: BetterFloat(123, exp=2) -> 1.23
@@ -63,7 +67,6 @@ class BetterFloat:
 			self._exp = value._exp
 			self._is_nan = value._is_nan
 			self._is_inf = value._is_inf
-			self._sign = value._sign
 		elif isinstance(value, int):
 			self._value = value
 			self._exp = 0
@@ -75,10 +78,10 @@ class BetterFloat:
 				self._is_nan = True
 				return
 			if math.isinf(value):
-				self._value = 0
+				self._value = 1 if value > 0 else -1
 				self._exp = 0
 				self._is_inf = True
-				self._sign = 1 if value > 0 else -1
+				self._value = 1 if value > 0 else -1
 				return
 			# Use repr for precision, but clean it up
 			s = repr(value)
@@ -104,26 +107,26 @@ class BetterFloat:
 			self._exp = 0
 			self._is_nan = True
 			self._is_inf = False
-			self._sign = 0
+			self._value = 0
 			return
 		if s in ('inf', '+inf', 'infinity', '+infinity'):
 			self._value = 0
 			self._exp = 0
 			self._is_nan = False
 			self._is_inf = True
-			self._sign = 1
+			self._value = 1
 			return
 		if s in ('-inf', '-infinity'):
 			self._value = 0
 			self._exp = 0
 			self._is_nan = False
 			self._is_inf = True
-			self._sign = -1
+			self._value = -1
 			return
 		
 		self._is_nan = False
 		self._is_inf = False
-		self._sign = 0
+		self._value = 0
 		
 		# Handle scientific notation
 		if 'e' in s:
@@ -192,7 +195,7 @@ class BetterFloat:
 		if hasattr(self, '_is_nan') and self._is_nan:
 			return float('nan')
 		if hasattr(self, '_is_inf') and self._is_inf:
-			return float('inf') * self._sign
+			return float('inf') * self._value
 		return self._value / (10 ** self._exp)
 	
 	def __int__(self) -> int:
@@ -204,7 +207,7 @@ class BetterFloat:
 		if hasattr(self, '_is_nan') and self._is_nan:
 			return 'nan'
 		if hasattr(self, '_is_inf') and self._is_inf:
-			return 'inf' if self._sign > 0 else '-inf'
+			return 'inf' if self._value > 0 else '-inf'
 		
 		if self._exp == 0:
 			return str(self._value)
@@ -228,7 +231,7 @@ class BetterFloat:
 		if hasattr(self, '_is_nan') and self._is_nan:
 			return 'BetterFloat("nan")'
 		if hasattr(self, '_is_inf') and self._is_inf:
-			return f'BetterFloat("{"inf" if self._sign > 0 else "-inf"}")'
+			return f'BetterFloat("{"inf" if self._value > 0 else "-inf"}")'
 		return f'BetterFloat("{str(self)}")'
 	
 	def __hash__(self) -> int:
@@ -246,13 +249,13 @@ class BetterFloat:
 			result = BetterFloat("nan")
 			return result
 		if self._is_inf:
-			if other._is_inf and self._sign != other._sign:
+			if other._is_inf and self._value != other._value:
 				result = BetterFloat("nan")
 			else:
-				result = BetterFloat("inf" if self._sign > 0 else "-inf")
+				result = BetterFloat("inf" if self._value > 0 else "-inf")
 			return result
 		if other._is_inf:
-			return BetterFloat("inf" if other._sign > 0 else "-inf")
+			return BetterFloat("inf" if other._value > 0 else "-inf")
 		
 		# Align exponents
 		if self._exp > other._exp:
@@ -287,12 +290,12 @@ class BetterFloat:
 			return BetterFloat("nan")
 		if self._is_inf:
 			if other._is_inf:
-				if self._sign == other._sign:
+				if self._value == other._value:
 					return BetterFloat("nan")
-				return BetterFloat("inf" if self._sign > 0 else "-inf")
-			return BetterFloat("inf" if self._sign > 0 else "-inf")
+				return BetterFloat("inf" if self._value > 0 else "-inf")
+			return BetterFloat("inf" if self._value > 0 else "-inf")
 		if other._is_inf:
-			return BetterFloat("-inf" if other._sign > 0 else "inf")
+			return BetterFloat("-inf" if other._value > 0 else "inf")
 		
 		# Align exponents
 		if self._exp > other._exp:
@@ -330,10 +333,10 @@ class BetterFloat:
 				return BetterFloat("nan")
 			new_sign = (1 if self._value >= 0 else -1) * (1 if other._value >= 0 else -1)
 			if self._is_inf:
-				new_sign = self._sign * (1 if other._value >= 0 else -1)
+				new_sign = self._value * (1 if other._value >= 0 else -1)
 			elif other._is_inf:
-				new_sign = (1 if self._value >= 0 else -1) * other._sign
-			return BetterFloat("inf" if new_sign > 0 else "-inf")
+				new_sign = (1 if self._value >= 0 else -1) * other._value
+			return BetterFloat("inf" if new_value > 0 else "-inf")
 		
 		new_value = self._value * other._value
 		new_exp = self._exp + other._exp
@@ -354,7 +357,7 @@ class BetterFloat:
 				return BetterFloat("nan")
 			return BetterFloat(0)
 		if self._is_inf:
-			new_sign = self._sign * (1 if other._value >= 0 else -1)
+			new_sign = self._value * (1 if other._value >= 0 else -1)
 			return BetterFloat("inf" if new_sign > 0 else "-inf")
 		
 		if other._value == 0:
@@ -390,7 +393,7 @@ class BetterFloat:
 			if other._value == 0:
 				return BetterFloat("nan")
 			if other._value > 0:
-				return BetterFloat("inf" if (self._sign > 0 or int(other._value) % 2 == 0) else "-inf")
+				return BetterFloat("inf" if (self._value > 0 or int(other._value) % 2 == 0) else "-inf")
 			return BetterFloat(0)
 		if other._is_inf:
 			if abs(self._value) > 10 ** self._exp:
@@ -421,7 +424,7 @@ class BetterFloat:
 		result = BetterFloat(-self._value, exp=self._exp)
 		result._is_nan = getattr(self, '_is_nan', False)
 		result._is_inf = getattr(self, '_is_inf', False)
-		result._sign = -getattr(self, '_sign', 0) if result._is_inf else 0
+		result._value = -getattr(self, '_value', 0) if result._is_inf else 0
 		return result
 	
 	def __pos__(self) -> 'BetterFloat':
@@ -483,11 +486,11 @@ class BetterFloat:
 		
 		# Handle infinity
 		if self._is_inf and other._is_inf:
-			return 0 if self._sign == other._sign else (1 if self._sign > other._sign else -1)
+			return 0 if self._value == other._value else (1 if self._value > other._value else -1)
 		if self._is_inf:
-			return self._sign
+			return self._value
 		if other._is_inf:
-			return -other._sign
+			return -other._value
 		
 		# Align exponents and compare
 		if self._exp > other._exp:
@@ -589,7 +592,7 @@ class BetterFloat:
 		'''Square root.'''
 		if not isinstance(x, BetterFloat):
 			x = BetterFloat(x)
-		if x._is_nan or x._is_inf and x._sign < 0:
+		if x._is_nan or x._is_inf and x._value < 0:
 			return BetterFloat("nan")
 		if x._is_inf:
 			return BetterFloat("inf")
@@ -605,7 +608,7 @@ class BetterFloat:
 		if x._is_nan:
 			return BetterFloat("nan")
 		if x._is_inf:
-			return BetterFloat("inf" if x._sign > 0 else "-inf")
+			return BetterFloat("inf" if x._value > 0 else "-inf")
 		return BetterFloat(float(x) ** (1/3))
 	
 	@staticmethod
