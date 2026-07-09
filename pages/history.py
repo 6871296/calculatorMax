@@ -85,7 +85,7 @@ class HistoryIO:
         self.win.resizable(False, False)
 
         self.cv = Canvas(self.win)
-        self.cv.place(width=300, height=150, x=0, y=0)
+        self.cv.place(width=300, height=40+len(history)*30, x=0, y=0)
 
         self.update(history)
 
