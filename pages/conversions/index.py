@@ -157,6 +157,7 @@ def main(root:Tk):
 	win.center()
 	win.focus_force()
 	win.topmost(True)
+	win.resizable(False, False)
 	
 	cv=Canvas(win)
 	cv.place(width=300,height=210,x=0,y=0)
@@ -175,6 +176,7 @@ if __name__=='__main__':
 	root=Tk((400,240))
 	root.center()
 	root.topmost(True)
+	root.resizable(False, False)
 	cv=Canvas(root)
 	cv.place(width=400,height=240,x=0,y=0)
 	

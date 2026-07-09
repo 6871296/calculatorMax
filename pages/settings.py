@@ -18,6 +18,7 @@ def main(root:Tk):
     win=Toplevel(root,(300,150),title='设置 - CalculatorMax')
     win.topmost(True)
     win.center()
+    win.resizable(False, False)
     
     def precision_spin_func(x:bool):
         def _show_precision_err(s:str):
@@ -60,6 +61,7 @@ if __name__ == '__main__':
     root=Tk((400,240))
     root.topmost(True)
     root.center()
+    root.resizable(False, False)
 
     cv=Canvas(root)
     cv.place(width=400,height=240,x=200,y=120,anchor='center')

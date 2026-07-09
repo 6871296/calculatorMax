@@ -17,6 +17,7 @@ class ChooseBox:
 		self.win.focus_force()
 		self.win.topmost(True)
 		self.win.center()
+		self.win.resizable(False, False)
 
 		cv = Canvas(self.win)
 		cv.place(width=width, height=(40 + infoheight)+len(btns)*40, x=0, y=0)
@@ -52,6 +53,7 @@ if __name__ == '__main__':
 	root = Tk((400, 240))
 	root.topmost(True)
 	root.center()
+	root.resizable(False, False)
 
 	cv = Canvas(root)
 	cv.place(width=400, height=240, x=0, y=0)

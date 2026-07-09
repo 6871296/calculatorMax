@@ -123,6 +123,7 @@ def ac():
 
 root=maliang.Tk(size=(400,250),title='CalculatorMax')
 root.center()
+root.resizable(False, False)
 root.focus_force()
 #root.topmost(True)
 
