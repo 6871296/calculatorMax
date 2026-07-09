@@ -113,4 +113,3 @@ if __name__ == '__main__':
         ],
         print))
     root.mainloop()
-    root.mainloop()
