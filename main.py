@@ -178,7 +178,7 @@ ac_btn=maliang.Button(cv,(190,180),(50,25),text='清空',fontsize=16,command=ac,
 copy_btn=maliang.Button(cv,(210,180),(50,25),text='复制',fontsize=16,command=copy,anchor='w')
 
 eq_sign=maliang.Text(cv,(200,195),anchor='n',text='',fontsize=16,justify='center')
-res_show=maliang.Text(cv,(200,215),text='',anchor='n')
+res_show=maliang.Text(cv,(200,210),text='',anchor='n',wrap_length=380)
 
 copy_btn.style.set(fg=('gray','gray','gray'))
 
