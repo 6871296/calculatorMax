@@ -1,0 +1,7 @@
+maliang
+simpleeval
+six
+sympy
+pyperclip
+pillow
+forex-python
