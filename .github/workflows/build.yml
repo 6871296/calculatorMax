@@ -1,6 +1,13 @@
 name: Build Executables
 
-on: push
+on:
+  push:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  actions: write
 
 jobs:
   build:
@@ -36,8 +43,16 @@ jobs:
         run: pyinstaller calculatormax.spec --distpath dist --workpath build
 
       - name: Upload artifact
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}-${{ github.run_number }}
           path: dist/${{ matrix.executable }}
           if-no-files-found: error
+
+      - name: Upload release asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.executable }}
+          tag_name: ${{ github.event.release.tag_name }}
