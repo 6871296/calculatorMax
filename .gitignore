@@ -2,3 +2,15 @@
 **/__pycache__
 **.pyc
 settings.json
+
+# Virtual environment
+.venv/
+venv/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec.bak
+
+# IDE
+.vscode/

@@ -5,3 +5,4 @@ sympy
 pyperclip
 pillow
 forex-python
+pyinstaller

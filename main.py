@@ -15,6 +15,25 @@ import maliang
 from lib.maliang_patch import patch
 patch()
 
+import sys
+import os
+
+
+def _resource_path(relative_path: str) -> str:
+    """Return the absolute path to a bundled resource.
+
+    Works both during development (repo root) and when packaged
+    by PyInstaller (onefile mode extracts to a temporary directory).
+    """
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller onefile extraction directory
+        base_path = sys._MEIPASS
+    else:
+        # Running from source: resources live next to main.py
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
+
+
 BetterFloat.set_precision(settings.get('floatPrecision',50))
 
 history:list[History]=[]
@@ -140,7 +159,7 @@ btns:list[maliang.Button]=[
 	#maliang.Button(cv_btn,(170,10),(30,30),text='♟'),
 	maliang.Button(cv_btn,(50,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
 	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',justify='center',command=lambda:settings_main(root)),
-	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file='assets/github.png').resize(20,24))
+	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file=_resource_path('assets/github.png')).resize(20,24))
 ]
 
 btn_labels:list[maliang.Label]=[
