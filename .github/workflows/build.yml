@@ -19,13 +19,13 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: calculatormax-linux
-            executable: calculatormax
+            executable: calculatormax-linux
           - os: windows-latest
             artifact_name: calculatormax-windows
-            executable: calculatormax.exe
+            executable: calculatormax-windows.exe
           - os: macos-latest
             artifact_name: calculatormax-macos
-            executable: calculatormax
+            executable: calculatormax-macos
 
     steps:
       - name: Checkout repository
