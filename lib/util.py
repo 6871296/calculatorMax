@@ -1,6 +1,7 @@
 from maliang import *
 
 import sys
+import ctypes
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -9,6 +10,53 @@ from lib.maliang_patch import patch
 # Common color representations accepted by maliang
 #Color = Union[str, tuple[int, int, int], tuple[int, int, int, int]]
 
+def _screen_size_px(win: Tk | Toplevel) -> tuple[int, int]:
+	"""获取屏幕的物理像素尺寸（面板原生分辨率）。
+
+	macOS 上 ``winfo_screenwidth()`` 返回的是逻辑点（pt）而非物理像素；
+	且当前渲染模式（如 1470x956 的缩放模式）的物理像素 (2940x1912)
+	也不是面板原生值。遍历显示模式并取带 Native 标志 (0x02000000) 的
+	模式，得到面板原生分辨率（如 2560x1664），与公式的分母保持一致。
+	"""
+	if sys.platform == 'darwin':
+		try:
+			cg = ctypes.CDLL('/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics')
+			cf = ctypes.CDLL('/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation')
+
+			cg.CGMainDisplayID.restype = ctypes.c_uint32
+			cg.CGDisplayCopyAllDisplayModes.argtypes = [ctypes.c_uint32, ctypes.c_void_p]
+			cg.CGDisplayCopyAllDisplayModes.restype = ctypes.c_void_p
+			cg.CGDisplayModeGetPixelWidth.argtypes = [ctypes.c_void_p]
+			cg.CGDisplayModeGetPixelWidth.restype = ctypes.c_size_t
+			cg.CGDisplayModeGetPixelHeight.argtypes = [ctypes.c_void_p]
+			cg.CGDisplayModeGetPixelHeight.restype = ctypes.c_size_t
+			cg.CGDisplayModeGetIOFlags.argtypes = [ctypes.c_void_p]
+			cg.CGDisplayModeGetIOFlags.restype = ctypes.c_uint32
+
+			cf.CFArrayGetCount.argtypes = [ctypes.c_void_p]
+			cf.CFArrayGetCount.restype = ctypes.c_long
+			cf.CFArrayGetValueAtIndex.argtypes = [ctypes.c_void_p, ctypes.c_long]
+			cf.CFArrayGetValueAtIndex.restype = ctypes.c_void_p
+			cf.CFRelease.argtypes = [ctypes.c_void_p]
+
+			display = cg.CGMainDisplayID()
+			modes = cg.CGDisplayCopyAllDisplayModes(display, None)
+			if modes:
+				native = None
+				for i in range(cf.CFArrayGetCount(modes)):
+					mode = cf.CFArrayGetValueAtIndex(modes, i)
+					if cg.CGDisplayModeGetIOFlags(mode) & 0x02000000:
+						native = (int(cg.CGDisplayModeGetPixelWidth(mode)),
+						          int(cg.CGDisplayModeGetPixelHeight(mode)))
+						break
+				cf.CFRelease(modes)
+				if native:
+					return native
+		except Exception:
+			pass
+	return win.winfo_screenwidth(), win.winfo_screenheight()
+
+
 def apply_screen_scale(win: Tk | Toplevel, design_width: int, design_height: int) -> tuple[int, int]:
 	"""按屏幕尺寸等比缩放窗口，并使其在屏幕上居中。
 
@@ -16,8 +64,7 @@ def apply_screen_scale(win: Tk | Toplevel, design_width: int, design_height: int
 	窗口需先以设计尺寸创建，再调用本函数；之后 maliang 会按设计尺寸
 	与实际尺寸的比例自动缩放窗口内的所有 widget。
 	"""
-	screen_w = win.winfo_screenwidth()
-	screen_h = win.winfo_screenheight()
+	screen_w, screen_h = _screen_size_px(win)
 	width = max(1, round(design_width * screen_w / 2560))
 	height = max(1, round(design_height * screen_h / 1670))
 	win.geometry(size=(width, height), position=((screen_w - width) // 2, (screen_h - height) // 2))

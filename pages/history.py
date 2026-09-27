@@ -26,7 +26,7 @@ class VisionHistory(History):
     ):
         super().__init__(ev, err, res)
         
-        self.cv=Canvas(cv)
+        self.cv=Canvas(cv,auto_zoom=True)
         self.cv.place(x=0,y=y,width=300,height=150)
         
         self.y = y
