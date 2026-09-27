@@ -10,6 +10,7 @@ from typing import Callable
 from lib.maliang_patch import patch
 patch()
 from lib.history import History
+from lib.util import apply_screen_scale
 
 
 class VisionHistory(History):
@@ -78,13 +79,14 @@ class HistoryIO:
     ):
         self.fill_history = fill_history
         self.history:list[VisionHistory]=[]
-        self.win = Toplevel(root, (300, min(150,40+len(history)*30)), title='历史记录 - CalculatorMax')
-        self.win.center()
+        design_height = min(150,40+len(history)*30)
+        self.win = Toplevel(root, (300, design_height), title='历史记录 - CalculatorMax')
         self.win.topmost(True)
         self.win.focus_force()
-        self.win.resizable(False, False)
+        apply_screen_scale(self.win, 300, design_height)
+        self.win.resizable(True, True)
 
-        self.cv = Canvas(self.win)
+        self.cv = Canvas(self.win, auto_zoom=True)
         self.cv.place(width=300, height=40+len(history)*30, x=0, y=0)
 
         self.update(history)

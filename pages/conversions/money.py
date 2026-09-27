@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from lib.core import bf
 from lib.betterfloat import BetterFloat
-from lib.util import ChooseBox
+from lib.util import ChooseBox, apply_screen_scale
 import lib.settings as settings
 from lib.maliang_patch import patch
 
@@ -195,12 +195,12 @@ def _money_convert(value:BetterFloat, units:dict, unit_from:str, unit_to:str)->B
 	
 def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]]=UNITS_MONEY,title:str='货币价值换算',_convert:Callable[[BetterFloat,dict[str,str],str,str],BetterFloat]=_money_convert):
 	win=Toplevel(root,(420,180),title=f'{title} - CalculatorMax')
-	win.center()
 	win.focus_force()
 	win.topmost(True)
-	win.resizable(False, False)
+	apply_screen_scale(win,420,180)
+	win.resizable(True, True)
 
-	cv=Canvas(win)
+	cv=Canvas(win,auto_zoom=True)
 	cv.place(width=420,height=180,x=0,y=0)
  
 	def choose_unit()->str|None:

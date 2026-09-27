@@ -7,6 +7,7 @@ from maliang import *
 
 import lib.settings as settings
 from lib.betterfloat import BetterFloat
+from lib.util import apply_screen_scale
 from lib.maliang_patch import patch
 patch()
 
@@ -17,8 +18,8 @@ SettingsTriggerer=Union[Switch,ToggleButton,CheckBox,RadioBox,Slider,SegmentedBu
 def main(root:Tk):
     win=Toplevel(root,(300,150),title='设置 - CalculatorMax')
     win.topmost(True)
-    win.center()
-    win.resizable(False, False)
+    apply_screen_scale(win,300,150)
+    win.resizable(True, True)
     
     def precision_spin_func(x:bool):
         def _show_precision_err(s:str):
@@ -34,7 +35,7 @@ def main(root:Tk):
         precision_spin.change(x)
         _sync_precision()
 
-    cv = maliang.Canvas(win)
+    cv = maliang.Canvas(win,auto_zoom=True)
     cv.place(width=300,height=150,x=0,y=0)
 
     maliang.Text(cv,(10,10),text='设置',fontsize=24,weight='bold')

@@ -9,6 +9,7 @@ from pages.conversions.convert import main as convert_main
 from pages.conversions.money import main as money_convert_main
 
 from lib.betterfloat import bf,BetterFloat
+from lib.util import apply_screen_scale
 from lib.maliang_patch import patch
 patch()
 
@@ -154,12 +155,12 @@ UNITS_WEIGHT={
 
 def main(root:Tk):
 	win=Toplevel(root,(300,210),title='单位换算 - CalculatorMax')
-	win.center()
 	win.focus_force()
 	win.topmost(True)
-	win.resizable(False, False)
+	apply_screen_scale(win,300,210)
+	win.resizable(True, True)
 	
-	cv=Canvas(win)
+	cv=Canvas(win,auto_zoom=True)
 	cv.place(width=300,height=210,x=0,y=0)
 	
 	maliang.Text(cv,(20,10),text='单位换算',weight='bold')

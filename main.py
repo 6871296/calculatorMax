@@ -2,7 +2,7 @@ from lib.betterfloat import *
 from lib.core import *
 import lib.settings as settings
 from lib.history import History
-from lib.util import ChooseBox
+from lib.util import ChooseBox, apply_screen_scale
 
 from pages.settings import main as settings_main
 from pages.conversions.index import main as convert_main
@@ -139,17 +139,16 @@ def ac():
 	title.style.set(fg='black')
 	ev_input.set('')
 
-
 root=maliang.Tk(size=(400,250),title='CalculatorMax')
-root.center()
-root.resizable(False, False)
+apply_screen_scale(root,400,250)
+root.resizable(True, True)
 root.focus_force()
 #root.topmost(True)
 
 cv=maliang.Canvas(root,auto_zoom=True,keep_ratio=None,free_anchor=True)
 cv.place(width=400, height=240,x=0,y=0)
 
-cv_btn=maliang.Canvas(cv)
+cv_btn=maliang.Canvas(cv,auto_zoom=True)
 cv_btn.place(width=400,height=61,x=0,y=0)
 #cv_btn.create_rectangle(0,0,400,50,fill='deepskyblue',width=0)
 

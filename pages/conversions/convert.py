@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from lib.core import bf
 from lib.betterfloat import BetterFloat
-from lib.util import ChooseBox
+from lib.util import ChooseBox, apply_screen_scale
 import lib.settings as settings
 from lib.maliang_patch import patch
 
@@ -69,12 +69,12 @@ def _convert(value:BetterFloat,units:dict[str,dict[str,BetterFloat]],unit_from:t
 	
 def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='长度单位换算',_convert:Callable[[BetterFloat,dict[str,dict[str,BetterFloat]],tuple[str,str],tuple[str,str]],BetterFloat]=_convert):
 	win=Toplevel(root,(420,170),title=f'{title} - CalculatorMax')
-	win.center()
 	win.focus_force()
 	win.topmost(True)
-	win.resizable(False, False)
+	apply_screen_scale(win,420,170)
+	win.resizable(True, True)
 
-	cv=Canvas(win)
+	cv=Canvas(win,auto_zoom=True)
 	cv.place(width=420,height=170,x=0,y=0)
  
 	def choose_unit()->tuple[str|None,str|None]:
