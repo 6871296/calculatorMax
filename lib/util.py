@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from lib.maliang_patch import patch
+from lib.betterfloat import BetterFloat
 
 # Common color representations accepted by maliang
 #Color = Union[str, tuple[int, int, int], tuple[int, int, int, int]]
@@ -57,7 +58,7 @@ def _screen_size_px(win: Tk | Toplevel) -> tuple[int, int]:
 	return win.winfo_screenwidth(), win.winfo_screenheight()
 
 
-def set_window_scale(win: Tk | Toplevel, factor: float) -> None:
+def set_window_scale(win: Tk | Toplevel, factor: BetterFloat) -> None:
 	"""按倍率程序化缩放窗口（1.0 为设计尺寸）。
 
 	大于 1 放大，小于 1 缩小；窗口内容（画布、控件、字体）会随

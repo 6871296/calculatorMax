@@ -143,7 +143,7 @@ root=maliang.Tk(size=(400,250),title='CalculatorMax')
 apply_screen_scale(root,400,250)
 root.resizable(True, True)
 root.focus_force()
-#root.topmost(True)
+root.topmost(True)
 
 cv=maliang.Canvas(root,auto_zoom=True,keep_ratio=None,free_anchor=True)
 cv.place(width=400, height=240,x=0,y=0)
@@ -158,6 +158,7 @@ btns:list[maliang.Button]=[
 	#maliang.Button(cv_btn,(170,10),(30,30),text='♟'),
 	maliang.Button(cv_btn,(50,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
 	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',justify='center',command=lambda:settings_main(root)),
+
 	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file=_resource_path('assets/github.png')).resize(20,24))
 ]
 
