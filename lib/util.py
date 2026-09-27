@@ -57,6 +57,21 @@ def _screen_size_px(win: Tk | Toplevel) -> tuple[int, int]:
 	return win.winfo_screenwidth(), win.winfo_screenheight()
 
 
+def set_window_scale(win: Tk | Toplevel, factor: float) -> None:
+	"""按倍率程序化缩放窗口（1.0 为设计尺寸）。
+
+	大于 1 放大，小于 1 缩小；窗口内容（画布、控件、字体）会随
+	maliang 的自动缩放机制同步调整。可在任意时刻调用，例如快捷键
+	或按钮命令::
+
+	    set_window_scale(root, 1.5)   # 放大到 1.5 倍
+	    set_window_scale(root, 0.75)  # 缩小到 75%
+	    set_window_scale(root, 1.0)   # 恢复设计尺寸
+	"""
+	factor = max(0.1, factor)
+	win.geometry(size=(round(win.init_size[0]*factor), round(win.init_size[1]*factor)))
+
+
 def apply_screen_scale(win: Tk | Toplevel, design_width: int, design_height: int) -> tuple[int, int]:
 	"""按屏幕尺寸等比缩放窗口，并使其在屏幕上居中。
 
