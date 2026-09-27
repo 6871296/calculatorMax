@@ -50,6 +50,13 @@ class VisionHistory(History):
 
 
 class HistoryIO:
+    def _relayout_rows(self) -> None:
+        # 子画布（历史条目）的尺寸会随窗口自动缩放，但位置不会，
+        # 需要按当前窗口比例手动调整条目的纵向位置。
+        ratio_y = self.win.ratios[1]
+        for item in self.history:
+            item.cv.place(x=0, y=item.y * ratio_y)
+
     def _on_history_destroy(self, item: VisionHistory):
         # 从列表中安全移除被删除的项，并把下方项上移
         if item in self.history:
@@ -57,6 +64,7 @@ class HistoryIO:
             self.history.remove(item)
             for i in self.history[idx:]:
                 i.set_y(i.y - 30)
+            self._relayout_rows()
 
     def update(self, history: list[History]):
         for i in self.history:
@@ -70,6 +78,7 @@ class HistoryIO:
                 i.ev,i.err,i.res,self.cv,y,self.fill_history,
                 self._on_history_destroy))
             y += 30
+        self._relayout_rows()
 
     def __init__(
         self,
@@ -88,6 +97,9 @@ class HistoryIO:
 
         self.cv = Canvas(self.win, auto_zoom=True)
         self.cv.place(width=300, height=40+len(history)*30, x=0, y=0)
+
+        # 窗口大小变化（如用户拖拽边框）时重新排布条目位置
+        self.win.bind('<Configure>', lambda _e: self._relayout_rows(), add='+')
 
         self.update(history)
 
