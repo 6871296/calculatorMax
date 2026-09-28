@@ -2,7 +2,7 @@ from lib.betterfloat import *
 from lib.core import *
 import lib.settings as settings
 from lib.history import History
-from lib.util import ChooseBox, apply_screen_scale
+from lib.util import ChooseBox, apply_screen_scale, wrap_display_text
 
 from pages.settings import main as settings_main
 from pages.conversions.index import main as convert_main
@@ -20,18 +20,18 @@ import os
 
 
 def _resource_path(relative_path: str) -> str:
-    """Return the absolute path to a bundled resource.
+	"""Return the absolute path to a bundled resource.
 
-    Works both during development (repo root) and when packaged
-    by PyInstaller (onefile mode extracts to a temporary directory).
-    """
-    if hasattr(sys, '_MEIPASS'):
-        # PyInstaller onefile extraction directory
-        base_path = sys._MEIPASS
-    else:
-        # Running from source: resources live next to main.py
-        base_path = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base_path, relative_path)
+	Works both during development (repo root) and when packaged
+	by PyInstaller (onefile mode extracts to a temporary directory).
+	"""
+	if hasattr(sys, '_MEIPASS'):
+		# PyInstaller onefile extraction directory
+		base_path = sys._MEIPASS
+	else:
+		# Running from source: resources live next to main.py
+		base_path = os.path.dirname(os.path.abspath(__file__))
+	return os.path.join(base_path, relative_path)
 
 
 BetterFloat.set_precision(settings.get('floatPrecision',50))
@@ -63,10 +63,12 @@ def show_res(err:bool|None,res:str):
 	last_res=res
 	if title_reset_after:
 		root.after_cancel(title_reset_after)
+	# 长结果按窗口宽度折行（连续长数字也能折断）
+	wrapped = wrap_display_text(res, res_show.texts[0].font, 390)
 	if err:
 		res_show.moveto(200,205)
 		eq_sign.set('')
-		res_show.set(res)
+		res_show.set(wrapped)
 		title.style.set(fg='red')
 		copy_btn.style.set(fg=('gray','gray','gray'))
 	elif err==None:
@@ -75,11 +77,16 @@ def show_res(err:bool|None,res:str):
 		if len(res)<=10:
 			res_show.moveto(200,205)
 			eq_sign.set('')
-			res_show.set('='+res)
+			res_show.set('='+wrapped)
+		elif '\n' in wrapped:
+			# 结果折成多行：从上方开始显示，等号并入首行
+			res_show.moveto(200,205)
+			eq_sign.set('')
+			res_show.set('='+wrapped)
 		else:
 			res_show.moveto(200,215)
 			eq_sign.set('=')
-			res_show.set(res)
+			res_show.set(wrapped)
 		title.style.set(fg='green')
 		copy_btn.style.set(fg=('black','black','black'))
 	title_reset_after=root.after(2000, lambda: title.style.set(fg='black'))
@@ -160,6 +167,7 @@ btns:list[maliang.Button]=[
 	maliang.Button(cv_btn,(50,10),(30,30),text='⚖',justify='center',command=lambda:convert_main(root)),
 	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',justify='center',command=lambda:settings_main(root)),
 
+	#maliang.Button(cv_btn,(320,10),(30,30),text='',justify='center',command=lambda:apply_screen_scale(root,400,250))
 	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file=_resource_path('assets/github.png')).resize(20,24))
 ]
 
@@ -167,6 +175,8 @@ btn_labels:list[maliang.Label]=[
 	maliang.Label(cv_btn,(25,50),(50,20),anchor='center',text='历史记录',fontsize=12,capture_events=False),
 	maliang.Label(cv_btn,(65,50),(30,20),anchor='center',text='换算',fontsize=12,capture_events=False),
 	maliang.Label(cv_btn,(105,50),(30,20),anchor='center',text='设置',fontsize=12,capture_events=False),
+ 
+	#maliang.Label(cv_btn,(335,50),(50,20),anchor=')
 	maliang.Label(cv_btn,(375,50),(50,20),anchor='center',text='（无效果）',fontsize=12,capture_events=False),
 ]
 
@@ -198,7 +208,7 @@ ac_btn=maliang.Button(cv,(190,180),(50,25),text='清空',fontsize=16,command=ac,
 copy_btn=maliang.Button(cv,(210,180),(50,25),text='复制',fontsize=16,command=copy,anchor='w')
 
 eq_sign=maliang.Text(cv,(200,195),anchor='n',text='',fontsize=16,justify='center')
-res_show=maliang.Text(cv,(200,210),text='',anchor='n')
+res_show=maliang.Text(cv,(200,210),text='',anchor='n',justify='center')
 
 copy_btn.style.set(fg=('gray','gray','gray'))
 

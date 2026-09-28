@@ -73,6 +73,25 @@ def set_window_scale(win: Tk | Toplevel, factor: BetterFloat) -> None:
 	win.geometry(size=(round(win.init_size[0]*factor), round(win.init_size[1]*factor)))
 
 
+def wrap_display_text(text: str, font, max_width: int) -> str:
+	"""按像素宽度对文本折行，返回用换行符连接的多行文本。
+
+	tkinter Canvas 的文本只在空白处折行，无法折断连续的长数字，
+	因此这里用字体度量逐字符贪心折行。
+	"""
+	lines: list[str] = []
+	for raw_line in text.split('\n'):
+		line = ''
+		for ch in raw_line:
+			if line and font.measure(line + ch) > max_width:
+				lines.append(line)
+				line = ch
+			else:
+				line += ch
+		lines.append(line)
+	return '\n'.join(lines)
+
+
 def apply_screen_scale(win: Tk | Toplevel, design_width: int, design_height: int) -> tuple[int, int]:
 	"""按屏幕尺寸等比缩放窗口，并使其在屏幕上居中。
 
