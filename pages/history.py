@@ -80,6 +80,9 @@ class HistoryIO:
                 self._on_history_destroy))
             y += 30
         self._relayout_rows()
+        # 新建的条目按当前窗口比例立即缩放（否则要等到下次窗口尺寸变化）
+        if self.cv.winfo_viewable():
+            self.cv.zoom()
 
     def __init__(
         self,
@@ -89,7 +92,7 @@ class HistoryIO:
     ):
         self.fill_history = fill_history
         self.history:list[VisionHistory]=[]
-        design_height = min(150,40+len(history)*30)
+        design_height = max(150,40+len(history)*30)
         self.win = Toplevel(root, (300, design_height), title='历史记录 - CalculatorMax')
         self.win.topmost(True)
         self.win.focus_force()
@@ -103,8 +106,9 @@ class HistoryIO:
         self.win.bind('<Configure>', lambda _e: self._relayout_rows(), add='+')
 
         self.update(history)
-
+        
         maliang.Text(self.cv, (10, 10), text='历史记录', fontsize=24, weight='bold')
+        maliang.Text(self.cv,(300,design_height),text="空空如也",)
 
 
 if __name__ == '__main__':

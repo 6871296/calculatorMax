@@ -142,6 +142,7 @@ def ac():
 root=maliang.Tk(size=(400,250),title='CalculatorMax')
 apply_screen_scale(root,400,250)
 root.resizable(True, True)
+root.center()
 root.focus_force()
 root.topmost(True)
 

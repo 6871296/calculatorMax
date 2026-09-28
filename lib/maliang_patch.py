@@ -1,6 +1,8 @@
 from maliang import Canvas
 from tkinter import Event
 from maliang.color import convert
+from maliang.standard import shapes
+import math
 
 
 # 防御性补丁：某些 macOS 环境下 maliang widget 的事件处理会访问到
@@ -106,6 +108,37 @@ def _safe_name_to_rgb(value, /):
     return result
 
 
+# 圆角半径缩放补丁：maliang 缩放控件时不会同步缩放 RoundedRectangle 的
+# radius，缩小后圆角直径可能超过控件尺寸（触发 "Parameters are not suitable"
+# 警告）且圆角比例失调。这里记录初始半径，绘制时按画布缩放比例等比调整，
+# 并限制不超过控件短边的一半。
+def _patch_radius_scaling(cls):
+    orig_init = cls.__init__
+    orig_coords = cls.coords
+
+    def _init(self, widget, relative_position=(0, 0), size=None, *, radius=5, **kwargs):
+        self._initial_radius = radius
+        orig_init(self, widget, relative_position, size, radius=radius, **kwargs)
+
+    def _coords(self, size=None, position=None):
+        try:
+            ratio_x, ratio_y = self.widget.master.ratios
+            ratio = math.sqrt(ratio_x * ratio_y)
+        except Exception:
+            ratio = 1.0
+        w = (self.size[0] if size is None else size[0]) or 0
+        h = (self.size[1] if size is None else size[1]) or 0
+        original = self.radius
+        self.radius = max(0.0, min(getattr(self, '_initial_radius', original) * ratio, min(w, h) / 2))
+        try:
+            orig_coords(self, size, position)
+        finally:
+            self.radius = original
+
+    cls.__init__ = _init
+    cls.coords = _coords
+
+
 def patch():
     Canvas.on_click = _safe_on_click
     Canvas.on_release = _safe_on_release
@@ -117,3 +150,5 @@ def patch():
     convert.rgb_to_hex = _safe_rgb_to_hex
     convert.rgba_to_hex = _safe_rgba_to_hex
     convert.name_to_rgb = _safe_name_to_rgb
+    _patch_radius_scaling(shapes.RoundedRectangle)
+    _patch_radius_scaling(shapes.HalfRoundedRectangle)
