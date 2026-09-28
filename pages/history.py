@@ -69,8 +69,8 @@ class HistoryIO:
 	def _relayout_rows(self) -> None:
 		# 子画布（历史条目）的尺寸会随窗口自动缩放（keep_ratio='min'，
 		# 统一比例不拉伸），但位置不会，需要按当前统一比例手动调整
-		# 条目的纵向位置。
-		self.empty_text.moveto(self.win.ratios[0]/2,self.win.ratios[1]/2)
+		# 条目的纵向位置。占位文本是虚拟控件，位置由画布自动缩放，
+		# 无需在这里调整。
 		ratio_y = min(self.win.ratios)
 		for item in self.history:
 			item.cv.place(x=0, y=item.y * ratio_y)
@@ -129,7 +129,7 @@ class HistoryIO:
 		# 窗口大小变化（如用户拖拽边框）时重新排布条目位置
 		self.win.bind('<Configure>', lambda _e: self._relayout_rows(), add='+')
 
-		self.empty_text = maliang.Text(self.cv, (150, content_height/2), text="空空如也")
+		self.empty_text = maliang.Text(self.cv, (150, design_height/2), text="空空如也")
 		self.empty_text.forget()
 
 		self.update(history)
@@ -147,14 +147,23 @@ if __name__ == '__main__':
 	cv.place(width=400, height=240, x=0, y=0)
 
 	maliang.Text(cv, (20, 20), text='CalculatorMax history page\nit should be opening on a separate window.')
+ 
+	def f():
+		HistoryIO(
+			root,
+			[
+				History('',None,''),
+				History('1+1', False, '2'),
+				History('1+2',False,'3'), 
+				History('1=1', True, '可能不是数学算式'),
+			],
+			print
+   		)
+		HistoryIO(
+			root,
+			[],
+			print
+		)
 
-	root.after_idle(lambda: HistoryIO(
-		root,
-		[
-			History('',None,''),
-			History('1+1', False, '2'),
-			History('1+2',False,'3'), 
-			History('1=1', True, '可能不是数学算式'),
-		],
-		print))
+	root.after_idle(f)
 	root.mainloop()
