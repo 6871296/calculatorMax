@@ -160,7 +160,7 @@ def main(root:Tk):
 	apply_screen_scale(win,300,210)
 	win.resizable(True, True)
 	
-	cv=Canvas(win,auto_zoom=True)
+	cv=Canvas(win,auto_zoom=True,keep_ratio='min')
 	cv.place(width=300,height=210,x=0,y=0)
 	
 	maliang.Text(cv,(20,10),text='单位换算',weight='bold')

@@ -200,7 +200,7 @@ def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]]=UNITS_MONEY,titl
 	apply_screen_scale(win,420,180)
 	win.resizable(True, True)
 
-	cv=Canvas(win,auto_zoom=True)
+	cv=Canvas(win,auto_zoom=True,keep_ratio='min')
 	cv.place(width=420,height=180,x=0,y=0)
  
 	def choose_unit()->str|None:

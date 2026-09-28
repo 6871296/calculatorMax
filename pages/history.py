@@ -26,7 +26,7 @@ class VisionHistory(History):
     ):
         super().__init__(ev, err, res)
         
-        self.cv=Canvas(cv,auto_zoom=True)
+        self.cv=Canvas(cv,auto_zoom=True,keep_ratio='min')
         self.cv.place(x=0,y=y,width=300,height=150)
         
         self.y = y
@@ -51,9 +51,10 @@ class VisionHistory(History):
 
 class HistoryIO:
     def _relayout_rows(self) -> None:
-        # 子画布（历史条目）的尺寸会随窗口自动缩放，但位置不会，
-        # 需要按当前窗口比例手动调整条目的纵向位置。
-        ratio_y = self.win.ratios[1]
+        # 子画布（历史条目）的尺寸会随窗口自动缩放（keep_ratio='min'，
+        # 统一比例不拉伸），但位置不会，需要按当前统一比例手动调整
+        # 条目的纵向位置。
+        ratio_y = min(self.win.ratios)
         for item in self.history:
             item.cv.place(x=0, y=item.y * ratio_y)
 
@@ -95,7 +96,7 @@ class HistoryIO:
         apply_screen_scale(self.win, 300, design_height)
         self.win.resizable(True, True)
 
-        self.cv = Canvas(self.win, auto_zoom=True)
+        self.cv = Canvas(self.win, auto_zoom=True, keep_ratio='min')
         self.cv.place(width=300, height=40+len(history)*30, x=0, y=0)
 
         # 窗口大小变化（如用户拖拽边框）时重新排布条目位置

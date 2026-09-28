@@ -112,7 +112,7 @@ class ChooseBox:
 		apply_screen_scale(self.win, *win_size)
 		self.win.resizable(True, True)
 
-		cv = Canvas(self.win, auto_zoom=True)
+		cv = Canvas(self.win, auto_zoom=True, keep_ratio='min')
 		cv.place(width=width, height=(40 + infoheight)+len(btns)*40, x=0, y=0)
 
 		self.title = Text(cv, (10, 10), text=title, weight='bold', fontsize=14, justify='center')

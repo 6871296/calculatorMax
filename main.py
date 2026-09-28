@@ -145,10 +145,10 @@ root.resizable(True, True)
 root.focus_force()
 root.topmost(True)
 
-cv=maliang.Canvas(root,auto_zoom=True,keep_ratio=None,free_anchor=True)
+cv=maliang.Canvas(root,auto_zoom=True,keep_ratio='min',free_anchor=True)
 cv.place(width=400, height=240,x=0,y=0)
 
-cv_btn=maliang.Canvas(cv,auto_zoom=True)
+cv_btn=maliang.Canvas(cv,auto_zoom=True,keep_ratio='min')
 cv_btn.place(width=400,height=61,x=0,y=0)
 #cv_btn.create_rectangle(0,0,400,50,fill='deepskyblue',width=0)
 

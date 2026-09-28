@@ -35,7 +35,7 @@ def main(root:Tk):
         precision_spin.change(x)
         _sync_precision()
 
-    cv = maliang.Canvas(win,auto_zoom=True)
+    cv = maliang.Canvas(win,auto_zoom=True,keep_ratio='min')
     cv.place(width=300,height=150,x=0,y=0)
 
     maliang.Text(cv,(10,10),text='设置',fontsize=24,weight='bold')

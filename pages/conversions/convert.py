@@ -74,7 +74,7 @@ def main(root:Tk|Toplevel,units:dict[str,dict[str,BetterFloat]],title:str='é•¿åº
 	apply_screen_scale(win,420,170)
 	win.resizable(True, True)
 
-	cv=Canvas(win,auto_zoom=True)
+	cv=Canvas(win,auto_zoom=True,keep_ratio='min')
 	cv.place(width=420,height=170,x=0,y=0)
  
 	def choose_unit()->tuple[str|None,str|None]:
