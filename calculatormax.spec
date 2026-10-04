@@ -11,7 +11,7 @@ import os
 
 
 # Repository root
-repo_root = os.path.abspath(os.path.dirname(SPECPATH))
+repo_root = os.path.abspath(os.path.dirname(SPECPATH)) # pyright: ignore[reportUndefinedVariable]
 
 
 # Collect hidden imports that may be loaded dynamically at runtime.

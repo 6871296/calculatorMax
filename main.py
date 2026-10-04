@@ -58,6 +58,31 @@ def fill_history(ev:str,err:bool|None,res:str):
 	ev_input.set(ev)
 	show_res(err,res)
 
+def _fit_result_window(lines:int, start_y:int) -> None:
+	"""按结果行数调整主窗口的设计高度，使结果完整展示。
+
+	缩放比例保持不变（窗口等比放大/缩小回设计高度），且缩放后的
+	窗口高度不超过屏幕高度；位置只在越界时微调。
+	"""
+	scale = root.winfo_width() / 400
+	line_h = res_show.texts[0].font.metrics('linespace')
+	need = start_y + lines * line_h + 6
+	design_h = max(250, need)
+	# 缩放后的窗口高度不能大于屏幕高度
+	max_design_h = int(root.winfo_screenheight() / scale)
+	design_h = min(design_h, max_design_h)
+	if design_h == root.init_size[1]:
+		return
+	root.init_size = (400, design_h)
+	cv.init_size = (400, design_h - 10)
+	new_w = round(400 * scale)
+	new_h = round(design_h * scale)
+	sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+	x = min(max(root.winfo_x(), 0), max(0, sw - new_w))
+	y = min(max(root.winfo_y(), 0), max(0, sh - new_h))
+	root.geometry(size=(new_w, new_h), position=(x, y))
+	cv.zoom()
+
 def show_res(err:bool|None,res:str):
 	global title_reset_after,last_res
 	last_res=res
@@ -65,10 +90,12 @@ def show_res(err:bool|None,res:str):
 		root.after_cancel(title_reset_after)
 	# 长结果按窗口宽度折行（连续长数字也能折断）
 	wrapped = wrap_display_text(res, res_show.texts[0].font, 390)
+	lines = wrapped.count('\n') + 1
 	if err:
 		res_show.moveto(200,205)
 		eq_sign.set('')
 		res_show.set(wrapped)
+		_fit_result_window(lines, 205)
 		title.style.set(fg='red')
 		copy_btn.style.set(fg=('gray','gray','gray'))
 	elif err==None:
@@ -78,15 +105,18 @@ def show_res(err:bool|None,res:str):
 			res_show.moveto(200,205)
 			eq_sign.set('')
 			res_show.set('='+wrapped)
+			_fit_result_window(lines, 205)
 		elif '\n' in wrapped:
 			# 结果折成多行：从上方开始显示，等号并入首行
 			res_show.moveto(200,205)
 			eq_sign.set('')
 			res_show.set('='+wrapped)
+			_fit_result_window(lines, 205)
 		else:
 			res_show.moveto(200,215)
 			eq_sign.set('=')
 			res_show.set(wrapped)
+			_fit_result_window(lines, 215)
 		title.style.set(fg='green')
 		copy_btn.style.set(fg=('black','black','black'))
 	title_reset_after=root.after(2000, lambda: title.style.set(fg='black'))
@@ -168,7 +198,7 @@ btns:list[maliang.Button]=[
 	maliang.Button(cv_btn,(90,10),(30,30),text='⚙️',justify='center',command=lambda:settings_main(root)),
 
 	#maliang.Button(cv_btn,(320,10),(30,30),text='',justify='center',command=lambda:apply_screen_scale(root,400,250))
-	maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file=_resource_path('assets/github.png')).resize(20,24))
+	#maliang.IconButton(cv_btn,(360,10),(30,30),image=maliang.PhotoImage(file=_resource_path('assets/github.png')).resize(20,24))
 ]
 
 btn_labels:list[maliang.Label]=[
@@ -176,8 +206,8 @@ btn_labels:list[maliang.Label]=[
 	maliang.Label(cv_btn,(65,50),(30,20),anchor='center',text='换算',fontsize=12,capture_events=False),
 	maliang.Label(cv_btn,(105,50),(30,20),anchor='center',text='设置',fontsize=12,capture_events=False),
  
-	#maliang.Label(cv_btn,(335,50),(50,20),anchor=')
-	maliang.Label(cv_btn,(375,50),(50,20),anchor='center',text='（无效果）',fontsize=12,capture_events=False),
+	#maliang.Label(cv_btn,(335,50),(50,20),anchor='center',text='重置窗口',fontsize=12,capture_events=False),
+	#maliang.Label(cv_btn,(375,50),(50,20),anchor='center',text='',fontsize=12,capture_events=False),
 ]
 
 # 按住 Option（Alt）键显示全部标签，松开时隐藏
