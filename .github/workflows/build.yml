@@ -18,14 +18,17 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: calculatormax-linux
-            executable: calculatormax-linux
+            exe_name: calculatormax-linux
+            artifact_path: dist/calculatormax-linux
+            release_path: dist/calculatormax-linux
           - os: windows-latest
-            artifact_name: calculatormax-windows
-            executable: calculatormax-windows.exe
+            exe_name: calculatormax-windows.exe
+            artifact_path: dist/calculatormax-windows.exe
+            release_path: dist/calculatormax-windows.exe
           - os: macos-latest
-            artifact_name: calculatormax-macos
-            executable: calculatormax-macos
+            exe_name: calculatormax-macos
+            artifact_path: dist/calculatormax-macos.app
+            release_path: dist/calculatormax-macos.zip
 
     steps:
       - name: Checkout repository
@@ -41,20 +44,25 @@ jobs:
 
       - name: Build with PyInstaller
         env:
-          EXE_NAME: ${{ matrix.executable }}
+          EXE_NAME: ${{ matrix.exe_name }}
         run: pyinstaller calculatormax.spec --distpath dist --workpath build
+
+      # Release 资产必须是文件：把 macOS 的 .app 打成 zip
+      - name: Zip macOS app for release
+        if: matrix.os == 'macos-latest'
+        run: ditto -c -k --keepParent "dist/calculatormax-macos.app" "dist/calculatormax-macos.zip"
 
       - name: Upload artifact
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}-${{ github.run_number }}
-          path: dist/${{ matrix.executable }}
+          name: ${{ matrix.exe_name }}-${{ github.run_number }}
+          path: ${{ matrix.artifact_path }}
           if-no-files-found: error
 
       - name: Upload release asset
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/${{ matrix.executable }}
+          files: ${{ matrix.release_path }}
           tag_name: ${{ github.event.release.tag_name }}

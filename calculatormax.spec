@@ -85,3 +85,13 @@ exe = EXE(
     # Windowed GUI application
     windowed=True,
 )
+
+# macOS 上无后缀的可执行文件被访达双击时会用终端打开；
+# 额外打包 .app 应用包，双击即可直接运行（不显示终端）。
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        exe,
+        name=os.environ.get('EXE_NAME', 'calculatormax') + '.app',
+        icon=None,
+        bundle_identifier=None,
+    )
