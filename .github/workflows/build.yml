@@ -40,6 +40,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build with PyInstaller
+        env:
+          EXE_NAME: ${{ matrix.executable }}
         run: pyinstaller calculatormax.spec --distpath dist --workpath build
 
       - name: Upload artifact

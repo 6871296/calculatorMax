@@ -48,8 +48,7 @@ a = Analysis(
     ['main.py'],
     pathex=[repo_root],
     binaries=[],
-    # Bundle the assets directory so it can be resolved at runtime.
-    datas=[('assets', 'assets')],
+    datas=[],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
@@ -70,7 +69,8 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='calculatormax',
+    # 工作流通过 EXE_NAME 环境变量指定平台名（如 calculatormax-macos）
+    name=os.environ.get('EXE_NAME', 'calculatormax'),
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
