@@ -39,6 +39,22 @@ def fill_history(ev:str,err:bool|None,res:str):
 	ev_input.set(ev)
 	show_res(err,res)
 
+def _set_window_design_height(design_h:int) -> None:
+	"""把主窗口高度设为指定的设计高度（宽度与缩放比例不变）。
+
+	缩放后的高度不超过屏幕高度，且不超过画布设计高度 _CV_DESIGN_H；
+	位置只在越界时微调。
+	"""
+	scale = root.winfo_width() / 400
+	design_h = min(design_h, _CV_DESIGN_H, int(root.winfo_screenheight() / scale))
+	if design_h * scale != root.winfo_height():
+		new_w = round(400 * scale)
+		new_h = round(design_h * scale)
+		sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+		x = min(max(root.winfo_x(), 0), max(0, sw - new_w))
+		y = min(max(root.winfo_y(), 0), max(0, sh - new_h))
+		root.geometry(size=(new_w, new_h), position=(x, y))
+
 def _display_result(text:str, start_y:int) -> None:
 	"""显示结果文本，并按行数调整主窗口高度使结果完整展示。
 
@@ -54,16 +70,7 @@ def _display_result(text:str, start_y:int) -> None:
 	h = len(line_list) * line_h
 	res_show.set(text)
 	res_show.resize((w, h))
-	scale = root.winfo_width() / 400
-	design_h = min(max(250, start_y + h + 6), _CV_DESIGN_H,
-	               int(root.winfo_screenheight() / scale))
-	if design_h * scale != root.winfo_height():
-		new_w = round(400 * scale)
-		new_h = round(design_h * scale)
-		sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
-		x = min(max(root.winfo_x(), 0), max(0, sw - new_w))
-		y = min(max(root.winfo_y(), 0), max(0, sh - new_h))
-		root.geometry(size=(new_w, new_h), position=(x, y))
+	_set_window_design_height(max(250, start_y + h + 6))
 
 def show_res(err:bool|None,res:str):
 	global title_reset_after,last_res
@@ -152,6 +159,8 @@ def ac():
 	res_show.set('')
 	title.style.set(fg='black')
 	ev_input.set('')
+	# 恢复窗口默认大小（设计高度 250）
+	_set_window_design_height(250)
 
 root=maliang.Tk(size=(400,250),title='CalculatorMax')
 apply_screen_scale(root,400,250)
