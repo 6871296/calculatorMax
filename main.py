@@ -58,30 +58,31 @@ def fill_history(ev:str,err:bool|None,res:str):
 	ev_input.set(ev)
 	show_res(err,res)
 
-def _fit_result_window(lines:int, start_y:int) -> None:
-	"""按结果行数调整主窗口的设计高度，使结果完整展示。
+def _display_result(text:str, start_y:int) -> None:
+	"""显示结果文本，并按行数调整主窗口高度使结果完整展示。
 
-	缩放比例保持不变（窗口等比放大/缩小回设计高度），且缩放后的
-	窗口高度不超过屏幕高度；位置只在越界时微调。
+	maliang 的自动测高对多行文本不准确，这里用字体度量手动校正，
+	使文本从 start_y 开始向下完整展示；窗口高度随结果行数伸缩
+	（画布设计高度固定为 _CV_DESIGN_H，窗口只负责显示其顶部区域，
+	缩放比例不变），且窗口高度不超过屏幕高度。
 	"""
+	font = res_show.texts[0].font
+	line_h = font.metrics('linespace')
+	line_list = text.split('\n')
+	w = max(font.measure(line) for line in line_list) + 4
+	h = len(line_list) * line_h
+	res_show.set(text)
+	res_show.resize((w, h))
 	scale = root.winfo_width() / 400
-	line_h = res_show.texts[0].font.metrics('linespace')
-	need = start_y + lines * line_h + 6
-	design_h = max(250, need)
-	# 缩放后的窗口高度不能大于屏幕高度
-	max_design_h = int(root.winfo_screenheight() / scale)
-	design_h = min(design_h, max_design_h)
-	if design_h == root.init_size[1]:
-		return
-	root.init_size = (400, design_h)
-	cv.init_size = (400, design_h - 10)
-	new_w = round(400 * scale)
-	new_h = round(design_h * scale)
-	sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
-	x = min(max(root.winfo_x(), 0), max(0, sw - new_w))
-	y = min(max(root.winfo_y(), 0), max(0, sh - new_h))
-	root.geometry(size=(new_w, new_h), position=(x, y))
-	cv.zoom()
+	design_h = min(max(250, start_y + h + 6), _CV_DESIGN_H,
+	               int(root.winfo_screenheight() / scale))
+	if design_h * scale != root.winfo_height():
+		new_w = round(400 * scale)
+		new_h = round(design_h * scale)
+		sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+		x = min(max(root.winfo_x(), 0), max(0, sw - new_w))
+		y = min(max(root.winfo_y(), 0), max(0, sh - new_h))
+		root.geometry(size=(new_w, new_h), position=(x, y))
 
 def show_res(err:bool|None,res:str):
 	global title_reset_after,last_res
@@ -90,12 +91,10 @@ def show_res(err:bool|None,res:str):
 		root.after_cancel(title_reset_after)
 	# 长结果按窗口宽度折行（连续长数字也能折断）
 	wrapped = wrap_display_text(res, res_show.texts[0].font, 390)
-	lines = wrapped.count('\n') + 1
 	if err:
 		res_show.moveto(200,205)
 		eq_sign.set('')
-		res_show.set(wrapped)
-		_fit_result_window(lines, 205)
+		_display_result(wrapped, 205)
 		title.style.set(fg='red')
 		copy_btn.style.set(fg=('gray','gray','gray'))
 	elif err==None:
@@ -104,19 +103,16 @@ def show_res(err:bool|None,res:str):
 		if len(res)<=10:
 			res_show.moveto(200,205)
 			eq_sign.set('')
-			res_show.set('='+wrapped)
-			_fit_result_window(lines, 205)
+			_display_result('='+wrapped, 205)
 		elif '\n' in wrapped:
 			# 结果折成多行：从上方开始显示，等号并入首行
 			res_show.moveto(200,205)
 			eq_sign.set('')
-			res_show.set('='+wrapped)
-			_fit_result_window(lines, 205)
+			_display_result('='+wrapped, 205)
 		else:
 			res_show.moveto(200,215)
 			eq_sign.set('=')
-			res_show.set(wrapped)
-			_fit_result_window(lines, 215)
+			_display_result(wrapped, 215)
 		title.style.set(fg='green')
 		copy_btn.style.set(fg=('black','black','black'))
 	title_reset_after=root.after(2000, lambda: title.style.set(fg='black'))
@@ -184,7 +180,10 @@ root.focus_force()
 root.topmost(True)
 
 cv=maliang.Canvas(root,auto_zoom=True,keep_ratio='min',free_anchor=True)
-cv.place(width=400, height=240,x=0,y=0)
+# 画布设计高度大于窗口：结果折行时窗口向下扩展即可显示更多内容，
+# 无需改动设计尺寸（避免缩放比例失稳）
+_CV_DESIGN_H=960
+cv.place(width=400, height=_CV_DESIGN_H,x=0,y=0)
 
 cv_btn=maliang.Canvas(cv,auto_zoom=True,keep_ratio='min')
 cv_btn.place(width=400,height=61,x=0,y=0)

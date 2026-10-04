@@ -40,8 +40,14 @@ class VisionHistory(History):
 		self.text = maliang.Text(self.cv, (20, 0), text='', fontsize=16)
 		wrapped = wrap_display_text(f'{self.ev} {mark}{self.res}', self.text.texts[0].font, _WRAP_WIDTH)
 		self.text.set(wrapped)
-		# 条目占用的设计高度：首行 30，每折一行加 22
-		self.step = 30 + wrapped.count('\n')*22
+		# maliang 的自动测高对多行文本不准，按字体度量手动校正，
+		# 使文本从顶部开始向下排列
+		font = self.text.texts[0].font
+		line_list = wrapped.split('\n')
+		self.text.resize((max(font.measure(line) for line in line_list) + 4,
+		                  len(line_list) * font.metrics('linespace')))
+		# 条目占用的设计高度：首行 30，每折一行加一个行高
+		self.step = 30 + (len(line_list) - 1) * font.metrics('linespace')
 		self.fill_btn = maliang.Button(
 			self.cv, (260, 0), anchor='ne', size=(20, 20), text='✍︎',
 			command=lambda: fill_history(ev, err, res))
@@ -61,10 +67,10 @@ class VisionHistory(History):
 
 class HistoryIO:
 	def _entry_step(self, ev: str, err: bool | None, res: str) -> int:
-		"""估算一条历史记录在设计坐标下占用的行高（首行 30，每折一行 +22）。"""
+		"""估算一条历史记录在设计坐标下占用的行高（首行 30，每折一行 +行高）。"""
 		mark = '❌' if err else '= '
 		wrapped = wrap_display_text(f'{ev} {mark}{res}', self._font, _WRAP_WIDTH)
-		return 30 + wrapped.count('\n')*22
+		return 30 + wrapped.count('\n') * self._font.metrics('linespace')
 
 	def _relayout_rows(self) -> None:
 		# 子画布（历史条目）的尺寸会随窗口自动缩放（keep_ratio='min'，
