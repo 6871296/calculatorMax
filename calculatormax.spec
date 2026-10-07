@@ -9,7 +9,6 @@ from PyInstaller.building.build_main import Analysis, PYZ, EXE, BUNDLE
 import sys
 import os
 
-
 # Repository root
 repo_root = os.path.abspath(os.path.dirname(SPECPATH)) # pyright: ignore[reportUndefinedVariable]
 
@@ -43,7 +42,7 @@ hiddenimports = [
     'forex_python.converter',
 ]
 
-
+print("Creating Analysis...")
 a = Analysis(
     ['main.py'],
     pathex=[repo_root],
@@ -62,6 +61,7 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=None)
 
+print("\033[0;1mCreating EXE...\033[0m")
 exe = EXE(
     pyz,
     a.scripts,
@@ -86,12 +86,15 @@ exe = EXE(
     windowed=True,
 )
 
-# macOS 上无后缀的可执行文件被访达双击时会用终端打开；
+# 出于没有logo、启动后无响应等问题，.app暂时搁置
+'''# macOS 上无后缀的可执行文件被访达双击时会用终端打开；
 # 额外打包 .app 应用包，双击即可直接运行（不显示终端）。
 if sys.platform == 'darwin':
+    print("\033[0;1mCreating .app bundle for Darwin...\033[0m")
     app = BUNDLE(
         exe,
-        name=os.environ.get('EXE_NAME', 'calculatormax') + '.app',
+        name='CalculatorMax.app',
         icon=None,
         bundle_identifier=None,
     )
+print("\033[0;1;32mDone!\033[0m")'''
